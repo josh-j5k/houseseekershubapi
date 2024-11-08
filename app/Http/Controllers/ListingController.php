@@ -3,19 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ImageCompressHelper;
-use Inertia\Inertia;
+use App\Http\Requests\ListingsRequest;
 use App\Models\Listing;
 use Illuminate\Http\Request;
 use App\Http\Resources\ListingResource;
-
+use App\Traits\ResponseTrait;
 class ListingController extends Controller
 {
+    use ResponseTrait;
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(ListingsRequest $request)
     {
-
+        dd($request->status);
         $location = $request->location;
 
         $status = $request->status ?? 'any';
@@ -45,23 +46,9 @@ class ListingController extends Controller
         $per_page = (int) $request->per_page ?? 16;
         $listings = ListingResource::collection(Listing::filter($filters)->paginate($per_page));
 
-        return Inertia::render(
-            'Listings/index',
-            [
-                'query' => $filters,
-                'listings' => $listings
-
-            ]
-        );
+        return $this->response('success', 'All listings', $listings, 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return Inertia::render('Listings/create');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -90,9 +77,9 @@ class ListingController extends Controller
     {
 
         $listing = new ListingResource(Listing::where('ref', $ref)->firstOrFail());
-        return Inertia::render('Listings/show', [
-            'listing' => $listing
-        ]);
+        // return Inertia::render('Listings/show', [
+        //     'listing' => $listing
+        // ]);
     }
 
     /**
