@@ -12,9 +12,10 @@ type handleRequestReturnValue = {
 const baseApiUrl = import.meta.env.VITE_API_URL as string
 const xsrfUrl = import.meta.env.VITE_API_XSRF_URL as string
 export default function useAxios() {
-    const loading = ref(false)
+    const loading = ref(true)
+    const btnLoading = ref(false)
     async function handleRequest(method: method, endpoint: endpoint, data: data = null, constentType: contentType = 'json') {
-        loading.value = true
+        btnLoading.value = true
         try {
 
             if (method == 'get') {
@@ -31,6 +32,8 @@ export default function useAxios() {
                         "Content-Type": constentType == 'json' ? 'application/json' : 'multipart/form-data',
                     }
                 })
+
+
                 return { error: false, data: res.data }
             }
             if (method == 'put') {
@@ -52,7 +55,8 @@ export default function useAxios() {
             return { error: true, data: error.response.data }
         } finally {
             loading.value = false
+            btnLoading.value = false
         }
     }
-    return { handleRequest, loading }
+    return { handleRequest, loading, btnLoading }
 }

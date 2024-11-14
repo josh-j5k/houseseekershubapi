@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { Listings } from '~/types/listings';
+import type { Listing } from '~/types/listings';
 
-const props = defineProps<{
-    listings: Listings
-}>()
-
+const { handleRequest } = useAxios();
+const loading = ref(true)
+const listings = ref(<Listing[]>[])
 const options = {
     componentRestrictions: { country: "cm" },
     strictBounds: false,
@@ -35,8 +34,15 @@ function submit() {
         console.log('validated')
     }
 }
-
-
+(async function () {
+    const { data, error } = await handleRequest('get', 'listings?limit=4')
+    if (!error) {
+        listings.value = data.data
+        loading.value = false
+        return
+    }
+    loading.value = false
+})()
 
 onMounted(() => {
     const locationInput = <HTMLInputElement>document.getElementById('location')
@@ -176,40 +182,58 @@ onMounted(() => {
                 <h3 class="md:text-2xl text-xl font-bold text-center">
                     Houses near you
                 </h3>
-                <!-- <Link :href="route('listings.index')" class="text-accent flex justify-center mt-3">
+                <NuxtLink to="/listings" class="text-accent flex justify-center mt-3">
                     <span class="capitalize mr-2">
                         show more houses
                     </span>
                     <span>
                         <i class="fa-regular fa-circle-right"></i>
                     </span>
-                    </Link> -->
+                </NuxtLink>
             </div>
             <div class="px-8 grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-3 md:translate-y-[5%]">
-                <!-- <template v-for="(listing, index) in listings.data">
+                <template v-if="loading">
+                    <template v-for="(_, index) in 4">
+                        <Card class="bg-white relative">
+                            <div class="flex flex-col items-center gap-3">
+                                <Skeleton class="aspect-square w-full" />
+                                <Skeleton class=" h-8 w-full" />
+                                <Skeleton class=" h-4 w-3/4" />
+                                <Skeleton class=" h-8 w-full" />
+                                <hr class="w-full h-[1px] bg-slate-100 mb-3">
 
+                                <Skeleton class=" h-6 w-full" />
+
+                            </div>
+                        </Card>
+                    </template>
+                </template>
+                <template v-else>
+                    <template v-for="(listing, index) in listings">
                         <Card class="bg-white relative">
                             <div>
-                                <img v-if="listing.images?.length > 0" :src="listing.images[0]" alt="listing image"
+                                <img lazy v-if="listing.images?.length > 0" :src="listing.images[0]" alt="listing image"
                                     class="w-full aspect-square">
                                 <img v-else src="/Images/no_image_placeholder.jpg" alt="">
                             </div>
                             <div class="p-4">
                                 <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
-                                    <span>
-                                        XAF
-                                    </span>
-                                    <span>
 
-                                        <span v-if="listing.propertyStatus === 'rent'">
-                                            <span>{{ listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",").concat('.00') }}</span>/Month
-                                        </span>
-                                        <span v-else>
-                                            {{ listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                ",").concat('.00') }}
-                                        </span>
+
+
+                                    <span v-if="listing.propertyStatus === 'rent'">
+                                        <span>{{ listing.price.toLocaleString('en-US', {
+                                            style: 'currency',
+                                            currency: 'XAF'
+                                        }) }}</span>/Month
                                     </span>
+                                    <span v-else>
+                                        {{ listing.price.toLocaleString('en-US', {
+                                            style: 'currency',
+                                            currency: 'XAF'
+                                        }) }}
+                                    </span>
+
                                 </p>
                                 <div>
                                     <p class="font-bold mb-1">
@@ -236,8 +260,8 @@ onMounted(() => {
                                 for {{ listing.propertyStatus }}
                             </span>
                         </Card>
-
-                    </template> -->
+                    </template>
+                </template>
             </div>
         </div>
     </section>
@@ -253,14 +277,14 @@ onMounted(() => {
                     on
                     Rightmove or Zoopla. Find out more about Only With Us properties here.
                 </p>
-                <!-- <Link href="" class="text-accent ">
+                <NuxtLink href="#" class="text-accent ">
                     <span class="capitalize">
                         start your search
                     </span>
                     <span>
                         <i class="fa-regular fa-circle-right"></i>
                     </span>
-                    </Link> -->
+                </NuxtLink>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2 lg:gap-2 gap-6">
                 <div class="w-full relative">

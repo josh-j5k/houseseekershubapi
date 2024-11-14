@@ -2,7 +2,7 @@
 definePageMeta({
     middleware: 'authenticated'
 })
-const { handleRequest, loading } = useAxios()
+const { handleRequest, btnLoading } = useAxios()
 const status = ref({
     error: false,
     message: null
@@ -27,6 +27,7 @@ const submit = async () => {
         return
     }
     const user = useState('user', () => data.user)
+    console.log(user.value)
     navigateTo('/au/'.concat(user.value.ref))
 }
 </script>
@@ -81,7 +82,7 @@ const submit = async () => {
                         class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Forgot your password?
                     </NuxtLink>
-                    <PrimaryButton :loading="loading" class="ml-4">
+                    <PrimaryButton :loading="btnLoading" class="ml-4">
                         Log in
                     </PrimaryButton>
                 </div>

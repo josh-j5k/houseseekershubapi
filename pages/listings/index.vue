@@ -3,15 +3,18 @@
 import { type Query, type Listings, type metaLinks } from '@/types/listings'
 
 
-
+const { handleRequest } = useAxios()
 // const { usePlaces, inputValue } = useGoogleMaps()
 
 const { locations, form, setInputsValues } = useListingFilter()
 
 
-const listings = <Listings>{}
+
 const per_page = ref('16')
 
+const { data, status } = useFetch<Listings>(import.meta.env.VITE_API_URL + 'listings?per_page=8', {
+    lazy: true
+})
 
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
@@ -140,10 +143,11 @@ onUnmounted(() => {
     <Head title="Listings" />
 
     <section class="min-h-screen w-full overflow-x-hidden relative "
-        :class="[sidebarToggled ? 'sidebar' : '', listings.data && listings.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
+        :class="[sidebarToggled ? 'sidebar' : '', data && data.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
         <div class="grid lg:grid-cols-[25%_75%] min-h-screen grid-cols-1 -md:gap-4">
             <ListingsSidebar :sidebar-toggled="sidebarToggled" :form="form" />
             <div>
+                <!-- <div class="text-center text-3xl text-green-600">{{ stat }}</div> -->
                 <div class="">
                     <div class=" md:w-[90%] mx-auto -md:px-8 bg-gray-100 mt-8 p-4">
                         <div class="flex relative -md:justify-end justify-between items-center">
@@ -216,11 +220,11 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <template v-if="listings.data && listings.data.length > 0">
+                    <template v-if="data && data.data.length > 0">
                         <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                             :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
-                            <!-- <template v-for="(listing) in listings.data">
-                                    <NuxtLink :to="listing/{ref}">
+                            <template v-for="(listing) in data.data">
+                                <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
                                     <Card class="bg-white relative" :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
                                         <div>
                                             <img v-if="listing.images?.length > 0" :src="listing.images[0]" alt=""
@@ -232,22 +236,22 @@ onUnmounted(() => {
                                         <div class="p-4">
                                             <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
 
-                                                <span>
 
-                                                    <span v-if="listing.propertyStatus === 'rent'">
-                                                        <span>{{
-                                                            listing.price.toLocaleString('en-US', {
-                                                                style: 'currency',
-                                                            currency: 'XAF'
-                                                            }) }}</span>/Month
-                                                    </span>
-                                                    <span v-else>
-                                                        {{ listing.price.toLocaleString('en-US', {
+
+                                                <span v-if="listing.propertyStatus === 'rent'">
+                                                    <span>{{
+                                                        listing.price.toLocaleString('en-US', {
                                                             style: 'currency',
                                                             currency: 'XAF'
-                                                        }) }}
-                                                    </span>
+                                                        }) }}</span>/Month
                                                 </span>
+                                                <span v-else>
+                                                    {{ listing.price.toLocaleString('en-US', {
+                                                        style: 'currency',
+                                                        currency: 'XAF'
+                                                    }) }}
+                                                </span>
+
                                             </p>
                                             <div>
                                                 <p v-if="activeGrid === 'grid'" class="font-bold mb-1">
@@ -286,8 +290,8 @@ onUnmounted(() => {
                                             for {{ listing.propertyStatus }}
                                         </span>
                                     </Card>
-                                    </NuxtLink>
-                                </template> -->
+                                </NuxtLink>
+                            </template>
 
                             <!-- <template v-for="cards in 24">
                                                         <div class="w-full h-80 bg-slate-300 shadow">

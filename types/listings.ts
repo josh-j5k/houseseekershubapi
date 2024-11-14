@@ -28,7 +28,7 @@ type Meta = {
     total: number
 }
 export type Listing = {
-    id: string,
+
     description: string,
     ref: string,
     location: string,
