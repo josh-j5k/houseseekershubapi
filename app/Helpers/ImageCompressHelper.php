@@ -11,7 +11,7 @@ class ImageCompressHelper
 
 
 
-        $dir = $file_folder ? "Images/$folder/$subfolder/$file_folder" : $dir = "Images/$folder/$subfolder";
+        $dir = $file_folder ? "images/$folder/$subfolder/$file_folder" : $dir = "images/$folder/$subfolder";
 
 
 

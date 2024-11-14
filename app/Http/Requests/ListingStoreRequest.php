@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\File;
 
 class ListingStoreRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class ListingStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,12 @@ class ListingStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "title" => ['required', 'string'],
+            'description' => ['required', 'string'],
+            'property_status' => ['required', 'string'],
+            'location' => ['required', 'string'],
+            'price' => ['required', 'int'],
+            'images' => ['required', File::types(['jpg', 'webp', 'png'])]
         ];
     }
 }

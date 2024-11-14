@@ -22,7 +22,7 @@ class ListingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['sometimes', 'required', 'string'],
+            'property_status' => ['sometimes', 'required', 'string'],
             'location' => ['sometimes', 'required', 'string'],
             'property_type' => ['sometimes', 'required', 'string'],
             'price' => ['sometimes', 'required', 'string']

@@ -25,10 +25,10 @@ class ListingResource extends JsonResource
         $images = [];
         foreach ($this->uploads as $image) {
 
-            $images[] = is_dir('Images') ? "/Images$image->url" : $image->url;
+            $images[] = is_dir('images') ? config('app.url') . "/images$image->url" : $image->url;
         }
         return [
-            'id' => $this->id,
+
             'ref' => $this->ref,
             'title' => $this->title,
             'location' => $this->location,
