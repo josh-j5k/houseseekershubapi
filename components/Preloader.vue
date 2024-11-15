@@ -1,9 +1,5 @@
 <script setup lang="ts">
-document.documentElement.style.overflow = 'hidden'
 
-onUnmounted(() => {
-    document.documentElement.style.overflow = 'auto'
-})
 </script>
 <template>
     <div class="w-screen h-screen z-max fixed isolate flex justify-center items-center bg-[rgba(255,255,255,0.75)]">

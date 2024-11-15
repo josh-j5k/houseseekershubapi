@@ -1,13 +1,13 @@
 <script setup lang="ts">
 
-import { type Listing } from '@/types/listings'
+import { type Listings } from '@/types/listings'
 
 
 const { handleRequest } = useAxios()
 // const { usePlaces, inputValue } = useGoogleMaps()s
-const listings = ref(<Listing[]>[])
-const { location, status, price, propertyType } = useListingFilter()
-const loading = ref(true)
+
+const { loading, listings, init, removeFilter } = useListing()
+
 
 
 const per_page = ref('16')
@@ -26,84 +26,10 @@ const filter = computed(() => {
         } else {
             arr = [...arr, decoded]
         }
-
     }
     return arr
 })
-
-function removeFilter(e: string): void {
-
-    const newQuery = { ...useRoute().query }
-    for (const key in newQuery) {
-        const value = newQuery[key] as string
-        const decoded = decodeURIComponent(value)
-        if (decoded.includes(e)) {
-            if (key == 'location' || key == 'status') {
-                delete newQuery[key]
-                key == 'location' ? location.value = null : status.value = 'any'
-                navigateTo({
-                    path: '/listings',
-                    query: newQuery
-                })
-            }
-            if (key == 'price') {
-                const arr = decoded.split('|')
-                if (arr.length == 1) {
-                    delete newQuery[key]
-                    e.includes('over') ? price.value.min = null : price.value.max = null
-                } else {
-                    arr.forEach(item => {
-                        if (item === e) {
-                            e.includes('over') ? price.value.min = null : price.value.max = null
-                        } else {
-                            newQuery[key] = item
-                        }
-
-                    })
-                }
-                navigateTo({
-                    path: '/listings',
-                    query: newQuery
-                })
-
-            }
-            if (key == 'property_type') {
-                const arr = decoded.split('|')
-                if (arr.length == 1) {
-                    delete newQuery[key]
-                    propertyType.value = <string[]>[]
-                } else {
-                    let newArr = <string[]>[]
-                    arr.forEach(item => {
-                        if (item !== e) {
-                            newArr.push(item)
-                        }
-                    })
-                    propertyType.value = newArr
-                    newQuery[key] = newArr.join('|')
-                }
-                navigateTo({
-                    path: '/listings',
-                    query: newQuery
-                })
-
-            }
-        }
-
-    }
-
-
-
-}
-(async function () {
-    const { data, error } = await handleRequest('get', 'listings?limit=8')
-    if (!error) {
-        listings.value = data.data
-    }
-    loading.value = false
-})()
-
-
+init()
 
 </script>
 
@@ -112,7 +38,7 @@ function removeFilter(e: string): void {
     <Head title="Listings" />
 
     <section class="min-h-screen w-full overflow-x-hidden relative "
-        :class="[sidebarToggled ? 'sidebar' : '', listings.length > 0 ? 'bg-gray-200' : 'bg-white']">
+        :class="[sidebarToggled ? 'sidebar' : '', listings.data && listings.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
         <div class="grid lg:grid-cols-[25%_75%] min-h-screen grid-cols-1 -md:gap-4">
             <ListingsSidebar :sidebar-toggled="sidebarToggled" />
             <div>
@@ -203,10 +129,10 @@ function removeFilter(e: string): void {
                         </div>
                     </template>
                     <template v-else>
-                        <template v-if="listings.length > 0">
+                        <template v-if="listings.data && listings.data.length > 0">
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
-                                <template v-for="(listing) in listings">
+                                <template v-for="(listing) in listings.data">
                                     <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
                                         <Card class="bg-white relative"
                                             :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">

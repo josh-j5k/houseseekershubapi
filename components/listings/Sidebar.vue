@@ -1,11 +1,11 @@
 <script setup lang="ts">
 
-const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit, setDefaultValues } = useListingFilter()
+const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit } = useListing()
 
 defineProps<{
     sidebarToggled: boolean,
 }>()
-setDefaultValues()
+
 function submitPrice(ev: KeyboardEvent) {
 
     if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {

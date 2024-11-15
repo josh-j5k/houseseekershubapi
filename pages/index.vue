@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Listing } from '~/types/listings';
+import type { Listings } from '~/types/listings';
 
 const { handleRequest } = useAxios();
 const loading = ref(true)
-const listings = ref(<Listing[]>[])
+const listings = ref(<Listings>{})
 const options = {
     componentRestrictions: { country: "cm" },
     strictBounds: false,
@@ -37,7 +37,7 @@ function submit() {
 (async function () {
     const { data, error } = await handleRequest('get', 'listings?limit=4')
     if (!error) {
-        listings.value = data.data
+        listings.value.data = data.data.listings
         loading.value = false
         return
     }
@@ -207,7 +207,7 @@ onMounted(() => {
                     </template>
                 </template>
                 <template v-else>
-                    <template v-for="(listing, index) in listings">
+                    <template v-for="(listing, index) in listings.data">
                         <Card class="bg-white relative">
                             <div>
                                 <img lazy v-if="listing.images?.length > 0" :src="listing.images[0]" alt="listing image"

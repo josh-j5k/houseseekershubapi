@@ -7,26 +7,8 @@ export type Query = {
     },
     property_type: string[]
 }
-type Links = {
-    first: string,
-    last: string,
-    next: string | null,
-    prev: string | null
-}
-export type metaLinks = {
-    url: string,
-    label: string,
-    active: boolean
-}
-type Meta = {
-    links: Array<metaLinks>,
-    current_page: number,
-    last_page: number,
-    path: string,
-    per_page: number,
-    to: number,
-    total: number
-}
+
+
 export type Listing = {
 
     description: string,
@@ -43,8 +25,7 @@ export type SingleListing = {
 }
 export type Listings = {
     data: Array<Listing>,
-    links: Links,
-    meta: Meta,
+    hasMorePages: boolean,
 
 }
 export type form = {
