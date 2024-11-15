@@ -1,139 +1,108 @@
 <script setup lang="ts">
 
-import { type Query, type Listings, type metaLinks } from '@/types/listings'
+import { type Listing } from '@/types/listings'
 
 
 const { handleRequest } = useAxios()
-// const { usePlaces, inputValue } = useGoogleMaps()
-
-const { locations, form, setInputsValues } = useListingFilter()
-
+// const { usePlaces, inputValue } = useGoogleMaps()s
+const listings = ref(<Listing[]>[])
+const { location, status, price, propertyType } = useListingFilter()
+const loading = ref(true)
 
 
 const per_page = ref('16')
 
-const { data, status } = useFetch<Listings>(import.meta.env.VITE_API_URL + 'listings?per_page=8', {
-    lazy: true
-})
 
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
 
-
 const filter = computed(() => {
-    const filArr = Object.values(form)
-    const arr = <string[]>[]
-    filArr.forEach((item: any | string) => {
-        if (item.includes('|')) {
-            const ele = item.split('|')
-            ele.forEach((element: any) => {
-                arr.push(element)
-            })
+    let arr = <string[]>[]
+    for (const key in useRoute().query) {
+        const value = useRoute().query[key] as string
+        const decoded = decodeURIComponent(value?.toString()!)
+        if (decoded.includes('|')) {
+            arr = [...arr, ...decoded.split('|')]
         } else {
-            arr.push(item)
+            arr = [...arr, decoded]
         }
-    })
+
+    }
     return arr
 })
-function removeFilter(e: any): void {
 
-    const item = e.currentTarget.textContent as string;
-    for (const [key, value] of Object.entries(form)) {
-        const newKey = key as keyof typeof form
-        if (key === 'location') {
-            // inputValue.value = ''
-            locations.value = ''
-        }
-        if (item === value) {
-            delete form[newKey]
-            // router.get('/listings', form)
-        } else if (value.includes(item)) {
-            const val = form[newKey] as string
-            const indexofStr = val.indexOf(item)
-            if (indexofStr === 0) {
-                const str = item + "|"
-                const newValue = val.replace(str, '')
-                form[newKey] = newValue
-                // router.get('/listings', form)
+function removeFilter(e: string): void {
 
-            } else {
-                const str = "|" + item
-                const newValue = val.replace(str, '')
-                form[newKey] = newValue
-                // router.get('/listings', form)
+    const newQuery = { ...useRoute().query }
+    for (const key in newQuery) {
+        const value = newQuery[key] as string
+        const decoded = decodeURIComponent(value)
+        if (decoded.includes(e)) {
+            if (key == 'location' || key == 'status') {
+                delete newQuery[key]
+                key == 'location' ? location.value = null : status.value = 'any'
+                navigateTo({
+                    path: '/listings',
+                    query: newQuery
+                })
             }
+            if (key == 'price') {
+                const arr = decoded.split('|')
+                if (arr.length == 1) {
+                    delete newQuery[key]
+                    e.includes('over') ? price.value.min = null : price.value.max = null
+                } else {
+                    arr.forEach(item => {
+                        if (item === e) {
+                            e.includes('over') ? price.value.min = null : price.value.max = null
+                        } else {
+                            newQuery[key] = item
+                        }
 
+                    })
+                }
+                navigateTo({
+                    path: '/listings',
+                    query: newQuery
+                })
+
+            }
+            if (key == 'property_type') {
+                const arr = decoded.split('|')
+                if (arr.length == 1) {
+                    delete newQuery[key]
+                    propertyType.value = <string[]>[]
+                } else {
+                    let newArr = <string[]>[]
+                    arr.forEach(item => {
+                        if (item !== e) {
+                            newArr.push(item)
+                        }
+                    })
+                    propertyType.value = newArr
+                    newQuery[key] = newArr.join('|')
+                }
+                navigateTo({
+                    path: '/listings',
+                    query: newQuery
+                })
+
+            }
         }
+
     }
 
 
+
 }
-// const metaLinks = computed((): metaLinks[] => {
-//     const arr = ref(<metaLinks[]>[])
-//     const links = listings.meta.links
-//     let index = ref(1)
-//     while (index.value < links.length - 1) {
-//         const element = links[index.value] as metaLinks
-//         arr.value.push(element)
-//         index.value++
-//     }
-
-//     return arr.value
-// })
-
-
-
-
-// const search = useRoute().params
-// const pageInclude = search.includes('page=')
-// const startQuery = search.startsWith('?page=')
-// const pageIndex = search.indexOf('&page')
-// const pageReplace = search.slice(pageIndex)
-// const newSearch = search.replace(pageReplace, '')
-// function pageQery(pageNumber: string) {
-//     if (search.length > 0 && startQuery) {
-//         // router.get('/listings?' + 'page='.concat(pageNumber))
-//     } else if (search.length > 0 && !pageInclude) {
-//         // router.get('/listings' + search + '&page='.concat(pageNumber))
-//     } else if (search.length > 0 && pageInclude && !startQuery) {
-//         // router.get('/listings' + newSearch + '&page='.concat(pageNumber))
-//     }
-//     else {
-//         // router.get('/listings?' + 'page='.concat(pageNumber))
-//     }
-// }
-function paginatePrev() {
-    // const prevPage = listings.meta.current_page - 1
-    // pageQery(prevPage.toString())
-}
-function paginateNext() {
-    // const nextPage = listings.meta.current_page + 1
-    // pageQery(nextPage.toString())
-}
-function specificPage(ev: MouseEvent) {
-    // const button = ev.target as HTMLButtonElement
-    // const page = button.textContent!
-    // pageQery(page)
-}
-// watch(inputValue, (newVal) => {
-
-//     locations.value = newVal
-// })
-
-// onMounted(() => {
-//     const locationInput = <HTMLInputElement>document.getElementById('location')
-//     usePlaces(locationInput, locations.value)
-//     setInputsValues(query?.location, query?.status, query.price, query.property_type)
-// })
-onUnmounted(() => {
-    locations.value = ''
-    for (const [key, value] of Object.entries(form)) {
-        const newKey = key as keyof typeof form
-        if (key) {
-            delete form[newKey]
-        }
+(async function () {
+    const { data, error } = await handleRequest('get', 'listings?limit=8')
+    if (!error) {
+        listings.value = data.data
     }
-})
+    loading.value = false
+})()
+
 
 
 </script>
@@ -143,9 +112,9 @@ onUnmounted(() => {
     <Head title="Listings" />
 
     <section class="min-h-screen w-full overflow-x-hidden relative "
-        :class="[sidebarToggled ? 'sidebar' : '', data && data.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
+        :class="[sidebarToggled ? 'sidebar' : '', listings.length > 0 ? 'bg-gray-200' : 'bg-white']">
         <div class="grid lg:grid-cols-[25%_75%] min-h-screen grid-cols-1 -md:gap-4">
-            <ListingsSidebar :sidebar-toggled="sidebarToggled" :form="form" />
+            <ListingsSidebar :sidebar-toggled="sidebarToggled" />
             <div>
                 <!-- <div class="text-center text-3xl text-green-600">{{ stat }}</div> -->
                 <div class="">
@@ -206,9 +175,9 @@ onUnmounted(() => {
                         </div>
                         <div class="flex  gap-3 mt-3">
                             <template v-for="item in filter">
-                                <button type="button" title="cancel filter" @click="removeFilter"
+                                <button type="button" title="cancel filter" @click="removeFilter(item)"
                                     class="flex items-center text-sm gap-2 rounded-xl bg-blue-500 text-white h-8 px-4">
-                                    <span class="">
+                                    <span class="capitalize">
                                         {{ item.slice(0, 10) }}
                                     </span>
                                     <span
@@ -219,133 +188,115 @@ onUnmounted(() => {
                             </template>
                         </div>
                     </div>
-
-                    <template v-if="data && data.data.length > 0">
-                        <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
-                            :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
-                            <template v-for="(listing) in data.data">
-                                <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
-                                    <Card class="bg-white relative" :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
-                                        <div>
-                                            <img v-if="listing.images?.length > 0" :src="listing.images[0]" alt=""
-                                                class="md:aspect-square object-cover"
-                                                :class="[activeGrid === 'tiles' ? 'max-w-[200px] -md:max-w-[150px] rounded-l-lg  -md:h-full' : 'w-full aspect-square rounded-tr-lg rounded-tl-lg']">
-                                            <img v-else src="/Images/no_image_placeholder.jpg" alt=""
-                                                :class="[activeGrid === 'tiles' ? 'max-w-[200px] md:aspect-square  -md:h-full object-cover -md:max-w-[150px]' : '']">
-                                        </div>
-                                        <div class="p-4">
-                                            <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
-
-
-
-                                                <span v-if="listing.propertyStatus === 'rent'">
-                                                    <span>{{
-                                                        listing.price.toLocaleString('en-US', {
-                                                            style: 'currency',
-                                                            currency: 'XAF'
-                                                        }) }}</span>/Month
-                                                </span>
-                                                <span v-else>
-                                                    {{ listing.price.toLocaleString('en-US', {
-                                                        style: 'currency',
-                                                        currency: 'XAF'
-                                                    }) }}
-                                                </span>
-
-                                            </p>
-                                            <div>
-                                                <p v-if="activeGrid === 'grid'" class="font-bold mb-1">
-                                                    {{ listing.title.slice(0, 35) }}
-                                                </p>
-                                                <div v-else>
-                                                    <p class="font-bold mb-1 -md:hidden">
-                                                        {{ listing.title }}
-                                                    </p>
-                                                    <p class="font-bold mb-1 md:hidden">
-                                                        {{ listing.title.slice(0, 35) }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <p class="text-sm opacity-75 mb-3 capitalize">
-                                                {{ listing.propertyType }}
-                                            </p>
-                                            <hr class="w-full h-[1px] bg-slate-100 mb-3">
-                                            <div v-if="activeGrid === 'grid'" class="flex gap-2 text-sm">
-                                                <span>
-                                                    <i class="fas fa-location-dot text-accent"></i>
-                                                </span>
-                                                <p>{{ listing.location.slice(0, 40) }}</p>
-                                            </div>
-                                            <div v-else class="flex gap-2 text-sm">
-                                                <span>
-                                                    <i class="fas fa-location-dot text-accent"></i>
-                                                </span>
-                                                <p class="-md:hidden">{{ listing.location }}</p>
-                                                <p class="md:hidden">{{ listing.location.slice(0, 30) }}</p>
-                                            </div>
-                                        </div>
-                                        <span
-                                            class="capitalize rounded py-1 px-2 absolute top-3 left-3 text-white text-sm cursor-default"
-                                            :class="[listing.propertyStatus === 'rent' ? 'bg-green-500' : 'bg-orange-500']">
-                                            for {{ listing.propertyStatus }}
-                                        </span>
-                                    </Card>
-                                </NuxtLink>
+                    <template v-if="loading">
+                        <div
+                            class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3 grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ">
+                            <template v-for="_ in 24">
+                                <Card class="flex flex-col gap-2">
+                                    <Skeleton class="aspect-square w-full" />
+                                    <Skeleton class=" h-8 w-full" />
+                                    <Skeleton class=" h-4 w-3/4" />
+                                    <Skeleton class=" h-8 w-full" />
+                                    <Skeleton class=" h-6 w-full" />
+                                </Card>
                             </template>
-
-                            <!-- <template v-for="cards in 24">
-                                                        <div class="w-full h-80 bg-slate-300 shadow">
-                                                            <SkeletonLoader class="w-full h-5/6 bg-slate-300" />
-                                                            <SkeletonLoader class="w-5/6 h-8 mx-auto bg-slate-400" />
-                                                        </div>
-                                                    </template> -->
                         </div>
                     </template>
                     <template v-else>
-                        <div class="flex flex-col gap-3 justify-center items-center mt-16 w-[90%] mx-auto">
-                            <span>
-                                <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
-                            </span>
-                            <p class="text-8xl -md:text-6xl font-bold">
-                                OOPS!
-                            </p>
-                            <p class="text-6xl -md:text-4xl font-bold">
-                                NO LISTING
-                            </p>
-                            <span>
-                                <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
-                            </span>
-                        </div>
+                        <template v-if="listings.length > 0">
+                            <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
+                                :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
+                                <template v-for="(listing) in listings">
+                                    <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
+                                        <Card class="bg-white relative"
+                                            :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
+                                            <div>
+                                                <img v-if="listing.images?.length > 0" :src="listing.images[0]" alt=""
+                                                    class="md:aspect-square object-cover"
+                                                    :class="[activeGrid === 'tiles' ? 'max-w-[200px] -md:max-w-[150px] rounded-l-lg  -md:h-full' : 'w-full aspect-square rounded-tr-lg rounded-tl-lg']">
+                                                <img v-else src="/Images/no_image_placeholder.jpg" alt=""
+                                                    :class="[activeGrid === 'tiles' ? 'max-w-[200px] md:aspect-square  -md:h-full object-cover -md:max-w-[150px]' : '']">
+                                            </div>
+                                            <div class="p-4">
+                                                <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
+
+
+
+                                                    <span v-if="listing.propertyStatus === 'rent'">
+                                                        <span>{{
+                                                            listing.price.toLocaleString('en-US', {
+                                                                style: 'currency',
+                                                                currency: 'XAF'
+                                                            }) }}</span>/Month
+                                                    </span>
+                                                    <span v-else>
+                                                        {{ listing.price.toLocaleString('en-US', {
+                                                            style: 'currency',
+                                                            currency: 'XAF'
+                                                        }) }}
+                                                    </span>
+
+                                                </p>
+                                                <div>
+                                                    <p v-if="activeGrid === 'grid'" class="font-bold mb-1">
+                                                        {{ listing.title.slice(0, 35) }}
+                                                    </p>
+                                                    <div v-else>
+                                                        <p class="font-bold mb-1 -md:hidden">
+                                                            {{ listing.title }}
+                                                        </p>
+                                                        <p class="font-bold mb-1 md:hidden">
+                                                            {{ listing.title.slice(0, 35) }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p class="text-sm opacity-75 mb-3 capitalize">
+                                                    {{ listing.propertyType }}
+                                                </p>
+                                                <hr class="w-full h-[1px] bg-slate-100 mb-3">
+                                                <div v-if="activeGrid === 'grid'" class="flex gap-2 text-sm">
+                                                    <span>
+                                                        <i class="fas fa-location-dot text-accent"></i>
+                                                    </span>
+                                                    <p>{{ listing.location.slice(0, 40) }}</p>
+                                                </div>
+                                                <div v-else class="flex gap-2 text-sm">
+                                                    <span>
+                                                        <i class="fas fa-location-dot text-accent"></i>
+                                                    </span>
+                                                    <p class="-md:hidden">{{ listing.location }}</p>
+                                                    <p class="md:hidden">{{ listing.location.slice(0, 30) }}</p>
+                                                </div>
+                                            </div>
+                                            <span
+                                                class="capitalize rounded py-1 px-2 absolute top-3 left-3 text-white text-sm cursor-default"
+                                                :class="[listing.propertyStatus === 'rent' ? 'bg-green-500' : 'bg-orange-500']">
+                                                for {{ listing.propertyStatus }}
+                                            </span>
+                                        </Card>
+                                    </NuxtLink>
+                                </template>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="flex flex-col gap-3 justify-center items-center mt-16 w-[90%] mx-auto">
+                                <span>
+                                    <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
+                                </span>
+                                <p class="text-8xl -md:text-6xl font-bold">
+                                    OOPS!
+                                </p>
+                                <p class="text-6xl -md:text-4xl font-bold">
+                                    NO LISTING
+                                </p>
+                                <span>
+                                    <i class="fa-solid fa-triangle-exclamation text-4xl"></i>
+                                </span>
+                            </div>
+                        </template>
                     </template>
                 </div>
-                <!-- <div v-if="metaLinks && metaLinks.length > 1"
-                    class="flex justify-between md:px-12 px-4 mt-8 bg-white h-32">
-                    <div class="flex items-center">
-                        <button @click="paginatePrev" :disabled="listings.links.prev === null"
-                            class="capitalize group border border-accent rounded-full aspect-square w-10"
-                            :class="[listings && listings.links.prev === null ? 'opacity-70' : '']">
-                            <i class="fas fa-chevron-left transition-transform duration-200 ease-out"
-                                :class="[listings.links.prev !== null ? 'group-hover:-translate-x-1' : '']"></i>
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <template v-for="(item, index) in metaLinks">
-                            <button @click="specificPage"
-                                class="border rounded-full hover:bg-accent-hover hover:text-white transition-colors aspect-square w-10"
-                                :class="[item.active ? 'bg-accent text-white' : '']">
-                                {{ index + 1 }}
-                            </button>
-                        </template>
-                    </div>
-                    <div class="flex items-center">
-                        <button @click="paginateNext" :disabled="listings.links.next === null"
-                            class="capitalize group border border-accent  rounded-full aspect-square w-10"
-                            :class="[listings && listings.links.next === null ? 'opacity-70' : '']">
-                            <i class="fas fa-chevron-right transition-transform duration-200 ease-out"
-                                :class="[listings && listings.links.next !== null ? 'group-hover:translate-x-1' : '']"></i>
-                        </button>
-                    </div>
-                </div> -->
+
             </div>
         </div>
     </section>

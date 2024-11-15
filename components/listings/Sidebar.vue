@@ -1,17 +1,11 @@
 <script setup lang="ts">
-import { type form } from '@/types/listings'
 
+const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit, setDefaultValues } = useListingFilter()
 
-
-const { locations, locationError, locationSubmit, price, priceError, status, updateCheckbox, propertyType, priceSubmit, propertySubmit } = useListingFilter()
-
-const { sidebarToggled, form } = defineProps<{
+defineProps<{
     sidebarToggled: boolean,
-    form: form,
-
 }>()
-const appliedFilter = ref(false)
-
+setDefaultValues()
 function submitPrice(ev: KeyboardEvent) {
 
     if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
@@ -24,12 +18,6 @@ function submitLocation(ev: KeyboardEvent) {
         locationSubmit()
     }
 }
-if (Object.keys(form).length > 0) {
-    appliedFilter.value = true
-}
-
-
-
 </script>
 
 <template>
@@ -39,13 +27,12 @@ if (Object.keys(form).length > 0) {
             <h2 class="capitalize font-bold text-2xl mb-4">location</h2>
             <label for="location" class="sr-only">location</label>
             <div class="flex gap-3">
-                <input @keydown="submitLocation" v-model="locations" :class="locationError && 'border-red-500'"
-                    class="border p-1 border-blue-300 focus-visible:outline-blue-500 rounded" type="text" name=""
-                    id="location" placeholder="Type your town, region">
+                <input @keydown="submitLocation" v-model="location" :class="errors.locationError && 'border-red-500'"
+                    class="input bg-transparent" type="text" name="" id="location" placeholder="Type your town, region">
                 <button @click="locationSubmit" type="button" title="submit location"><i
                         class="fas fa-chevron-right fa-lg"></i></button>
             </div>
-            <p v-if="locationError" class="text-red-500">Please enter a location</p>
+            <p v-if="errors.locationError" class="text-red-500">Please enter a location</p>
         </div>
         <hr class="w-4/5 bg-slate-300 my-8">
         <div>
@@ -54,21 +41,21 @@ if (Object.keys(form).length > 0) {
                 <div class="flex gap-3 items-center h-full">
 
                     <label for="status-all" class="capitalize">
-                        <input id="status-all" @change="updateCheckbox" v-model="status" type="radio" value="any"
+                        <input id="status-all" @change="statusSubmit" v-model="status" type="radio" value="any"
                             class="accent-accent">
                         any
                     </label>
                 </div>
                 <div class="flex gap-3 items-center h-full">
                     <label for="status-rent" class="capitalize">
-                        <input id="status-rent" @change="updateCheckbox" type="radio" value="rent" v-model="status"
+                        <input id="status-rent" @change="statusSubmit" type="radio" value="rent" v-model="status"
                             class="accent-accent">
                         rent
                     </label>
                 </div>
                 <div class="flex gap-3 items-center h-full">
                     <label for="status-sale" class="capitalize">
-                        <input id="status-sale" @change="updateCheckbox" type="radio" value="sale" v-model="status"
+                        <input id="status-sale" @change="statusSubmit" type="radio" value="sale" v-model="status"
                             class="accent-accent">
                         sale
                     </label>
@@ -79,19 +66,19 @@ if (Object.keys(form).length > 0) {
         <div>
             <h2 class="capitalize font-bold text-2xl mb-4">Price</h2>
             <div class="flex gap-3 items-center">
-                <input @keydown="submitPrice" :class="priceError && 'border-red-500'"
-                    class="border p-1 border-blue-300 focus-visible:outline-blue-500 rounded" v-model="price.min"
-                    placeholder="min" type="text" size="7" name="min" id="price-min">
+                <input @keydown="submitPrice" :class="errors.priceError && 'border-red-500'"
+                    class="input bg-transparent" v-model="price.min" placeholder="min" type="text" size="7" name="min"
+                    id="price-min">
                 <label for="price-min" class="sr-only"> Minimum price</label>
                 <span>To</span>
-                <input @keydown="submitPrice" :class="priceError && 'border-red-500'"
-                    class="border p-1 border-blue-300 focus-visible:outline-blue-500 rounded" v-model="price.max"
-                    placeholder="max" size="7" type="text" name="max" id="price-max">
+                <input @keydown="submitPrice" :class="errors.priceError && 'border-red-500'"
+                    class="input bg-transparent" v-model="price.max" placeholder="max" size="7" type="text" name="max"
+                    id="price-max">
                 <label for="price-max" class="sr-only"> Maximum price</label>
                 <button @click="priceSubmit" title="submit price" type="button"><i
                         class="fas fa-chevron-right fa-lg"></i></button>
             </div>
-            <p v-if="priceError" class="text-red-500">Please enter a valid price range</p>
+            <p v-if="errors.priceError" class="text-red-500">Please enter a valid price range</p>
         </div>
         <hr class="w-4/5 bg-slate-300 my-8">
         <div>

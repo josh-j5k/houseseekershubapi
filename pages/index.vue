@@ -109,9 +109,8 @@ onMounted(() => {
                         Location
                     </label>
                     <div class="flex items-center gap-4 w-full relative">
-                        <input ref="input" required v-model="form.location" type="text"
-                            placeholder="Type your town, region" id="location"
-                            class="border-none bg-gray-100  focus:ring-accent w-full">
+                        <input required v-model="form.location" type="text" placeholder="Type your town, region"
+                            id="location" class="input">
                         <span class="absolute right-2"><i class="fas fa-map"></i></span>
                     </div>
                 </div>
@@ -121,8 +120,7 @@ onMounted(() => {
                         Property Type
                     </label>
                     <div class="flex items-center gap-4 w-full relative">
-                        <select required v-model="form.property_type" id="property-type"
-                            class="border-none outline-none appearance-none focus:ring-accent bg-gray-100 w-full">
+                        <select required v-model="form.property_type" id="property-type" class="input appearance-none">
                             <option value="" disabled>Please select an option</option>
                             <option value="room">
                                 Room

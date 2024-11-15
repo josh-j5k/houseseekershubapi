@@ -6,7 +6,7 @@ const pagesToShowFooterBanner = ['index', 'contact', 'about']
 
 <template>
     <footer class="lg:px-12 lg:pt-32 bg-slate-950 text-white relative">
-        <div v-if="pagesToShowFooterBanner.includes(useRoute.name)"
+        <div v-if="pagesToShowFooterBanner.includes($route.name?.toString()!)"
             class="lg:w-[80%] w-full mx-auto lg:absolute z-50 left-1/2 lg:-translate-x-1/2 -top-1/3 grid lg:grid-cols-2 grid-cols-1 gap-4 lg:gap-16 items-center lg:px-16 p-8 lg:py-2 lg:translate-y-20 bg-accent-hover lg:rounded-lg">
             <div class="-lg:text-center">
                 <p class="text-2xl mb-4">

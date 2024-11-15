@@ -1,92 +1,98 @@
+import type { LocationQuery, LocationQueryValue } from 'vue-router';
 
 
-import { type form } from '@/types/listings';
 
 
-const form = reactive(<form>{
-
+const location = ref(<string | null>null)
+const errors = reactive({
+    locationError: false,
+    priceError: false
 })
 
-const locations = ref('')
-const locationError = ref(false)
-const priceError = ref(false)
-const status = ref('any')
+const status = ref(<string>'any')
 const propertyType = ref(<string[]>[])
 
-const price = ref(<price>{
-    min: null,
-    max: null
-})
-
-type price = {
+const price = ref(<{
     min: string | null,
     max: string | null
-}
+}>{
+        min: null,
+        max: null
+    })
 
+
+
+async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
+    const encoded = encodeURIComponent(value?.toString()!)
+    const route = useRoute()
+    if (Object.keys(route.query).length == 0) {
+
+        await navigateTo({
+            path: '/listings',
+            query: { [name]: encoded }
+        })
+        return
+    }
+    const newQuery = { ...route.query }
+
+    newQuery[name] = encoded
+    await navigateTo({
+        path: '/listings',
+        query: newQuery
+    })
+}
 export function useListingFilter() {
 
-    function setInputsValues(location: string | null, Status: string, fPrice: price, property: string[]) {
-        if (location !== null) {
-            locations.value = location
-            form.location = location
-        }
-        if (Status !== 'any') {
-            form.status = Status
-        }
-
-        if (fPrice.min && fPrice.min.length > 0 && fPrice.max === null) {
-            form.price = 'over'.concat(fPrice.min)
-            price.value.min = fPrice.min
-
-        } else if (fPrice.min === null && fPrice.max && fPrice.max.length > 0) {
-            form.price = 'under'.concat(fPrice.max)
-            price.value.max = fPrice.max
-        } else if (fPrice.min && fPrice.min.length > 0 && fPrice.max && fPrice.max.length > 0) {
-            form.price = 'over'.concat(fPrice.min) + '|' + 'under'.concat(fPrice.max)
-            price.value.max = fPrice.max
-            price.value.min = fPrice.min
-        }
-
-
-        if (property.length > 0) {
-            property.forEach((item, index) => {
-                if (index === 0) {
-                    form.property_type = item
-
-                } else {
-                    form.property_type += '|'.concat(item)
-
-                }
-
-            })
-        }
-
-        status.value = Status
-
-        propertyType.value = property
-
-    }
-    function submit(input: any, key: string, value: string): void {
-        input[key] = value
-
-
-    }
-    function updateCheckbox() {
-        console.log(status.value);
-
-        // submit(form, 'status', status.value)
-    }
-    function locationSubmit() {
-        if (locations === null || locations.value.length === 0) {
-            locationError.value = true
-            setTimeout(() => locationError.value = false, 4000)
+    function setDefaultValues() {
+        if (Object.keys(useRoute().query).length == 0) {
             return
         }
-        // submit(form, 'location', locations.value)
+
+
+        for (const key in useRoute().query) {
+            const value = useRoute().query[key]
+            const decoded = decodeURIComponent(value?.toString()!)
+            if (key == 'status') {
+                status.value = decoded
+
+
+            }
+            if (key == 'location') {
+                location.value = decoded
+
+            }
+            if (key == 'price') {
+                const arr = decoded.split('|')
+                arr?.forEach(item => {
+                    if (item.startsWith('over')) {
+                        price.value.min = item.substring(4)
+                    } else {
+                        price.value.max = item.substring(4)
+                    }
+                })
+
+            }
+            if (key == 'property_type') {
+                propertyType.value = decoded.split('|')!
+
+            }
+        }
+    }
+    function statusSubmit() {
+
+        submit('status', status.value)
+    }
+    function locationSubmit() {
+        if (location.value === null || location.value.length === 0) {
+            errors.locationError = true
+            setTimeout(() => errors.locationError = false, 4000)
+            return
+        }
+        submit('location', location.value)
     }
     function setPriceError() {
-        priceError.value = true
-        setTimeout(() => priceError.value = false, 4000)
+        errors.priceError = true
+        setTimeout(() => errors.priceError = false, 4000)
         return
     }
     function priceValidate() {
@@ -107,18 +113,20 @@ export function useListingFilter() {
 
 
     function priceSubmit() {
+
         if (priceValidate()) {
-
-            if (price.value.min && price.value.min.length > 0 && price.value.max && price.value.max.length === 0) {
-                // submit(form, 'price', 'over'.concat(price.value.min))
+            if (price.value.min && price.value.max) {
+                submit('price', 'over'.concat(price.value.min) + '|' + 'under'.concat(price.value.max))
+                return
             }
-            if (price.value.max && price.value.max.length > 0 && price.value.min && price.value.min.length === 0) {
-                // submit(form, 'price', 'under'.concat(price.value.max))
+            if (price.value.min) {
+                submit('price', 'over'.concat(price.value.min))
+                return
             }
-            if (price.value.max && price.value.max.length > 0 && price.value.min && price.value.min.length > 0) {
-                // submit(form, 'price', 'over'.concat(price.value.min) + '|' + 'under'.concat(price.value.max))
+            if (price.value.max) {
+                submit('price', 'under'.concat(price.value.max))
+                return
             }
-
         }
     }
     function propertySubmit() {
@@ -127,23 +135,24 @@ export function useListingFilter() {
         propertyType.value.forEach((item, index) => {
             if (index === 0) {
                 property = item
-                // submit(form, 'property_type', property)
+                submit('property_type', property)
             } else {
                 property += '|'.concat(item)
-                // submit(form, 'property_type', property)
+                submit('property_type', property)
             }
 
         })
     }
 
     return {
-        locations,
-        locationError,
-        price, priceError, status, propertyType,
-        form,
-        updateCheckbox,
+
+        location,
+        errors: readonly(errors),
+        price, status, propertyType,
+        statusSubmit,
         priceSubmit, propertySubmit,
         locationSubmit,
-        setInputsValues
+        setDefaultValues
+
     }
 }
