@@ -1,17 +1,15 @@
 <script setup lang="ts">
+import type { user } from '~/types/user';
+
 defineProps<{
     class: string
 }>()
-const user = {
-    name: 'john',
-    email: 'test@test.com',
-    avatar: null
-}
+const user = useState('user').value as user
 const show = ref(false)
 const closeable = ref(false)
 const form = reactive({
-    name: user.name,
-    email: user.email,
+    name: user.user.name,
+    email: user.user.email,
 });
 
 const avatarForm = reactive({
@@ -91,7 +89,8 @@ onMounted(() => {
                     <input hidden type="file" name="avatar" id="avatar" accept=".jpg, .jpeg, .png, .webp">
                     <button aria-labelledby="button" @click="updateAvatar"
                         class="w-20 h-20 rounded-full bg-gray-200 cursor-pointer">
-                        <img v-if="user.avatar" :src="user.avatar" alt="avatar" class="w-20 h-20 rounded-full">
+                        <img v-if="user.user.avatar" :src="user.user.avatar" alt="avatar"
+                            class="w-20 h-20 rounded-full">
                         <span v-else class="w-20 h-20 flex justify-center items-center">
                             <i class="fas fa-user text-2xl"></i>
                         </span>
@@ -133,7 +132,7 @@ onMounted(() => {
                     </button>
                 </div>
                 <div class="flex justify-center mb-8">
-                    <img v-if="user.avatar" :src="user.avatar" alt="avatar" class="w-40 h-40 rounded-full">
+                    <img v-if="user.user.avatar" :src="user.user.avatar" alt="avatar" class="w-40 h-40 rounded-full">
                     <span v-else class="w-40 h-40 rounded-full bg-slate-100 flex justify-center items-center">
                         <i class="fas fa-user text-6xl"></i>
                     </span>

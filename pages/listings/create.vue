@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { user } from '~/types/user';
 import toast from '~/utils/toastNotification';
 
 
@@ -6,7 +7,7 @@ import toast from '~/utils/toastNotification';
 const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, filesArr } = useFileUpload()
 const { formErrors, validation } = useListingFormValidator()
 
-
+const user = useState('user').value as user
 const form = reactive({
     title: '',
     property_status: 'rent',
@@ -26,6 +27,9 @@ function fileUpload(e: MouseEvent) {
     const input = dropbox.querySelector('#file_upload') as HTMLInputElement
     input.click()
 
+}
+function setToPascalCase() {
+    form.title = form.title.trim().split(' ').map(item => item.charAt(0).toUpperCase().concat(item.substring(1))).join(' ')
 }
 function removePhoto(ev: MouseEvent) {
     const fileInput = document.querySelector('#file_upload') as HTMLInputElement
@@ -49,49 +53,37 @@ function nextPic() {
     }
 }
 
-// function submit() {
-//     form.title.trim()
-//     form.description.trim()
-//     form.inputFiles = filesArr.value
+function submit() {
+    form.title.trim()
+    form.description.trim()
+    form.inputFiles = filesArr.value
 
 
-//     if (user.value === null) {
-//         return toast('Error', 'You need to be logged in to perform this action')
-//     } else if (validation(form.title, form.description, form.property_type, form.price, form.property_status, form.location, total.value)) {
+    if (user == undefined) {
+        return toast('Error', 'You need to be logged in to perform this action')
+    }
+    if (validation(form.title, form.description, form.property_type, form.price, form.property_status, form.location, total.value)) {
+        console.log(form)
+        // form.post(route('listings.index'), {
+        //     preserveScroll: true,
+        //     onSuccess: () => {
+        //         toast('Success', 'Listing added successfully')
+        //         form.reset('description', 'inputFiles', 'location', 'price', 'property_status', 'property_type', 'title')
+        //         const file_upload = document.getElementById('file_upload') as HTMLInputElement
+        //         const newDt = new DataTransfer()
+        //         file_upload.files = newDt.files
+        //         imgSrc.value = []
+        //         filesArr.value = <File[]>[]
+        //         total.value = 0
 
-//         form.post(route('listings.index'), {
-//             preserveScroll: true,
-//             onSuccess: () => {
-//                 toast('Success', 'Listing added successfully')
-//                 form.reset('description', 'inputFiles', 'location', 'price', 'property_status', 'property_type', 'title')
-//                 const file_upload = document.getElementById('file_upload') as HTMLInputElement
-//                 const newDt = new DataTransfer()
-//                 file_upload.files = newDt.files
-//                 imgSrc.value = []
-//                 filesArr.value = <File[]>[]
-//                 total.value = 0
-
-//             },
-//         })
-//     }
-// }
+        //     },
+        // })
+    }
+}
 
 onMounted(() => {
-    const titleInput = document.getElementById('listing_title') as HTMLInputElement
-    titleInput.addEventListener('change', () => {
-
-        const arr = <string[]>[]
-        const convertToCamelCase = form.title.split(' ')
-        convertToCamelCase.forEach((word) => {
-            const uppercaseFirstLetter = word[0].toUpperCase()
-            const firstLetter = word[0]
 
 
-            const newWord = word.replace(firstLetter, uppercaseFirstLetter)
-            arr.push(newWord)
-        })
-        form.title = arr.join(' ')
-    })
     function dropEnter(ev: any) {
         drop(ev, file_upload)
     }
@@ -126,7 +118,7 @@ onUnmounted(() => {
         class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center p-8 pt-0 gap-4">
         <div
             class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-12 lg:pt-28">
-            <form @submit.prevent="console.log('yaay')" enctype="multipart/form-data">
+            <form @submit.prevent="submit" enctype="multipart/form-data">
                 <div class="flex flex-col gap-4">
                     <div>
                         <p class="text-sm mb-2 flex items-center justify-center">
@@ -151,15 +143,15 @@ onUnmounted(() => {
                                     </button>
                                 </div>
                             </template>
-                            <FileUpload @file-upload="fileUpload" file_type="image" :file-error="formErrors.fileError"
-                                width="100%" accept=".jpg, .jpeg, .png, .webp" />
+                            <FileUpload ref="dropbox" @file-upload="fileUpload" file_type="image"
+                                :file-error="formErrors.fileError" accept=".jpg, .jpeg, .png, .webp" />
                         </div>
                     </div>
                     <p v-if="formErrors.fileError" class="text-red-500"> Please upload at least one photo.</p>
                     <div class="flex flex-col">
                         <label for="listing_title" class="capitalize font-bold text-lg mb-3">listing title</label>
-                        <input v-model="form.title" type="text" name="listing title" id="listing_title"
-                            placeholder="Enter listing title" class="input"
+                        <input @change="setToPascalCase" v-model="form.title" type="text" name="listing title"
+                            id="listing_title" placeholder="Enter listing title" class="input"
                             :class="[formErrors.titleError ? 'border-red-500' : '']">
                     </div>
                     <p v-if="formErrors.titleError" class="text-red-500">
@@ -230,13 +222,13 @@ onUnmounted(() => {
         </div>
         <div class="lg:col-start-2 lg:col-end-3">
             <div class="w-full lg:h-[90vh] m-auto overflow-hidden bg-white shadow rounded-md  p-4 pb-11">
-                <!-- <div v-if="user === null" class=" text-red-500 text center bg-white p-4">
+                <div v-if="user === null" class=" text-red-500 text center bg-white p-4">
                     <p class="text-center">
                         You need to be an authenticated user to
                         publish a
                         listing!
                     </p>
-                </div> -->
+                </div>
                 <h2 class="font-bold py-2 text-lg">Preview</h2>
                 <div class="grid lg:grid-cols-[60%_40%] grid-cols-1 h-full w-full border rounded-md">
                     <div class="relative w-full h-[90%] overflow-hidden"

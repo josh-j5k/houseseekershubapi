@@ -1,15 +1,11 @@
 <script setup lang="ts">
+import type { user } from '~/types/user';
 
-const user = computed(() => null)
-const userNameArr = ref(<string[]>[])
-const userName = ref('')
+const user = useState('user').value as user
 const toggled = ref(false)
 const dropdownToggled = ref(false)
 const activeLinkClass = "text-accent font-bold lg:border-b-2 lg:pb-[1px] lg:border-accent"
-// if (user.value) {
-//     userNameArr.value = user.value.name.split(' ')
-//     userName.value = userNameArr.value[0]
-// }
+
 function navToggle() {
     toggled.value = !toggled.value
     if (toggled.value === true) {
@@ -85,7 +81,7 @@ onUnmounted(() => {
                 <div class="flex gap-6 -lg:justify-between -lg:pt-8 -lg:border-t">
 
                     <div class="flex items-center gap-2 h-12">
-                        <button type="button" title="New listing" @click="useRouter().push('/listings/create')"
+                        <button type="button" title="New listing" @click="$router.push('/listings/create')"
                             class="text-white hover:bg-accent-hover bg-accent flex items-center justify-center gap-2 h-9 w-32 rounded-md ">
                             <span>
                                 <i class="fas fa-circle-plus"></i>
@@ -95,54 +91,74 @@ onUnmounted(() => {
                             </span>
                         </button>
                     </div>
-                    <div class="flex items-center relative">
-                        <button v-if="!user" type="button" title="login or register" @click="useRouter().push('/login')"
-                            class="flex items-center gap-2 h-12 ">
-                            <span
-                                class="w-8 aspect-square rounded-full flex justify-center items-end border-2 border-accent overflow-hidden">
-                                <i class="fa-regular fa-user text-2xl text-accent translate-y-1.5"></i>
-                            </span>
-                            <span>
-                                Sign in
-                            </span>
-                        </button>
 
-                        <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle" v-else
-                            type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
-                            <span v-if="user" id="avatar">
-                                <img :src="user" alt="user avatar" class="w-8 aspect-square rounded-full">
-                            </span>
-                            <span id="avatar" v-else
-                                class="w-8 aspect-square flex justify-center items-center bg-slate-900 rounded-full text-white border border-accent">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <span id="user_name">
-                                {{ userName }}
-                            </span>
-                            <span id="dropdown-icon" class="text-sm">
-                                <i class="fas fa-caret-down"></i>
-                            </span>
-                        </button>
-                        <div v-if="user"
-                            class="absolute lg:hidden bg-gray-50 shadow py-4 px-8 -top-[450%] right-0 flex-col items-start gap-2 transition-opacity duration-500 ease-in-out"
-                            id="dashboard_dropdown "
-                            :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
-                            <nav>
-                                <ul>
-                                    <li class="capitalize">
-                                        <NuxtLink :to="{ name: 'au-id', params: { id: 1 } }">dashboard</NuxtLink>
-                                    </li>
-                                    <li class="capitalize">
-                                        <NuxtLink :to="{ name: 'au-id-profile', params: { id: 1 } }">profile</NuxtLink>
-                                    </li>
-                                    <li @click="console.log('logout')" class="capitalize">
-                                        logout
-                                    </li>
-                                </ul>
-                            </nav>
+                    <ClientOnly>
+                        <div class="flex items-center relative">
+                            <button v-if="user == undefined" type="button" title="login or register"
+                                @click="$router.push('/login')" class="flex items-center gap-2 h-12 ">
+                                <span
+                                    class="w-8 aspect-square rounded-full flex justify-center items-end border-2 border-accent overflow-hidden">
+                                    <i class="fa-regular fa-user text-2xl text-accent translate-y-1.5"></i>
+                                </span>
+                                <span>
+                                    Sign in
+                                </span>
+                            </button>
 
+                            <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle" v-else
+                                type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
+                                <span v-if="user.user.avatar" id="avatar">
+                                    <img :src="user.user.avatar" alt="user avatar"
+                                        class="w-8 aspect-square rounded-full">
+                                </span>
+                                <span id="avatar" v-else
+                                    class="w-8 aspect-square flex justify-center items-center bg-slate-900 rounded-full text-white border border-accent">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <span id="user_name">
+                                    {{ user.user.name.split(' ')[0] }}
+                                </span>
+                                <span id="dropdown-icon" class="text-sm">
+                                    <i class="fas fa-caret-down"></i>
+                                </span>
+                            </button>
+                            <div v-if="user !== undefined"
+                                class="absolute lg:hidden bg-gray-50 shadow py-4 px-8 -top-[450%] right-0 flex-col items-start gap-2 transition-opacity duration-500 ease-in-out"
+                                id="dashboard_dropdown "
+                                :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
+                                <nav>
+                                    <ul>
+                                        <li class="capitalize">
+                                            <NuxtLink :to="{ name: 'au-id', params: { id: user.user.ref } }">dashboard
+                                            </NuxtLink>
+                                        </li>
+                                        <li class="capitalize">
+                                            <NuxtLink :to="{ name: 'au-id-profile', params: { id: user.user.ref } }">
+                                                profile
+                                            </NuxtLink>
+                                        </li>
+                                        <li @click="console.log('logout')" class="capitalize">
+                                            logout
+                                        </li>
+                                    </ul>
+                                </nav>
+
+                            </div>
                         </div>
-                    </div>
+
+                        <template #fallback>
+                            <button title="login or register" class="flex items-center gap-2 h-12 ">
+                                <span
+                                    class="w-8 aspect-square rounded-full flex justify-center items-end border-2 border-accent overflow-hidden">
+                                    <i class="fa-regular fa-user text-2xl text-accent translate-y-1.5"></i>
+                                </span>
+                                <span>
+                                    Sign in
+                                </span>
+                            </button>
+                        </template>
+                    </ClientOnly>
+
                 </div>
             </div>
         </div>
@@ -153,7 +169,9 @@ onUnmounted(() => {
 
     <!-- Mobile hamburger menu -->
 
-    <HeaderHambugerMenu :dropdown-toggled :user />
+    <ClientOnly>
+        <HeaderHambugerMenu :dropdown-toggled :user="user" />
+    </ClientOnly>
 </template>
 
 <style scoped>

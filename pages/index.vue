@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { Listings } from '~/types/listings';
+import type { Listings, Listing } from '~/types/listings';
 
 const { handleRequest } = useAxios();
-const loading = ref(true)
+const loading = ref(false)
 const listings = ref(<Listings>{})
+
+const storeListings = useState('listings').value as Listings | undefined
+storeListings !== undefined ? listings.value.data = storeListings.data.slice(0, 4) : ''
 const options = {
     componentRestrictions: { country: "cm" },
     strictBounds: false,
@@ -35,13 +38,16 @@ function submit() {
     }
 }
 (async function () {
-    const { data, error } = await handleRequest('get', 'listings?limit=4')
-    if (!error) {
-        listings.value.data = data.data.listings
+    if (storeListings == undefined) {
+        loading.value = true
+        const { data, error } = await handleRequest('get', 'listings?limit=4')
+        if (!error) {
+            listings.value.data = data.data.listings
+            loading.value = false
+            return
+        }
         loading.value = false
-        return
     }
-    loading.value = false
 })()
 
 onMounted(() => {
@@ -190,7 +196,7 @@ onMounted(() => {
                 </NuxtLink>
             </div>
             <div class="px-8 grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-3 md:translate-y-[5%]">
-                <template v-if="loading">
+                <template v-if="storeListings == undefined ? loading : false">
                     <template v-for="(_, index) in 4">
                         <Card class="bg-white relative">
                             <div class="flex flex-col items-center gap-3">

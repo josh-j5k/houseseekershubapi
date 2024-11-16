@@ -1,15 +1,22 @@
 import { type user } from "~/types/user";
 function isAuthenticated(): boolean {
-    if (useState('user').value) return true;
+
+
+    const user = localStorage.getItem('user')
+    if (user) {
+        useState('user', () => JSON.parse(user))
+        return true
+    }
     return false
+
 }
 
 // ---cut---
 export default defineNuxtRouteMiddleware((to, from) => {
-    // isAuthenticated() is an example method verifying if a user is authenticated
+    if (import.meta.server) return
     if (isAuthenticated()) {
         const user = useState('user').value as user
-        return navigateTo({ name: 'au-id', params: { id: user.ref } })
+        return navigateTo({ name: 'au-id', params: { id: user.user.ref } })
     }
 })
 

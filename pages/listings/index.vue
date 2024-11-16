@@ -3,16 +3,13 @@
 import { type Listings } from '@/types/listings'
 
 
-const { handleRequest } = useAxios()
+
 // const { usePlaces, inputValue } = useGoogleMaps()s
 
 const { loading, listings, init, removeFilter } = useListing()
-
-
+const storeListings = useState('listings').value as Listings | undefined
 
 const per_page = ref('16')
-
-
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
 
@@ -29,8 +26,8 @@ const filter = computed(() => {
     }
     return arr
 })
-init()
 
+storeListings == undefined ? init() : ''
 </script>
 
 <template>
@@ -114,7 +111,7 @@ init()
                             </template>
                         </div>
                     </div>
-                    <template v-if="loading">
+                    <template v-if="storeListings == undefined ? loading : false">
                         <div
                             class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3 grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ">
                             <template v-for="_ in 24">
@@ -129,7 +126,8 @@ init()
                         </div>
                     </template>
                     <template v-else>
-                        <template v-if="listings.data && listings.data.length > 0">
+                        <template
+                            v-if="storeListings != undefined ? storeListings.data.length > 0 : listings.data.length > 0">
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
                                 <template v-for="(listing) in listings.data">

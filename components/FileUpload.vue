@@ -1,23 +1,16 @@
-<script setup>
+<script setup lang="ts">
 
-const props = defineProps({
-    file_type: {
-        type: String
-    },
-    width: {
-        type: String
-    },
-    height: {
-        type: String
-    },
-    fileError: {
-        type: Boolean
-    },
-    accept: String
+defineProps<{
+    file_type: string,
+    // width: string,
+    // height: string | undefined,
+    fileError: boolean,
+    accept: string,
 
-})
+}>()
+
 const emit = defineEmits(['file-upload'])
-function fileUpload(e) {
+function fileUpload(e: any) {
     emit('file-upload', e)
 }
 
@@ -25,8 +18,7 @@ function fileUpload(e) {
 </script>
 
 <template>
-    <div class="shadow rounded-md mx-auto p-4 overflow-hidden" :class="[fileError ? 'border border-red-500' : '']"
-        :style="{ width: width, height: height }">
+    <div class="shadow rounded-md mx-auto p-4 overflow-hidden" :class="[fileError ? 'border border-red-500' : '']">
         <div @click="fileUpload" id="dropbox"
             class="w-full h-full border py-4 border-dashed rounded-md flex flex-col justify-center items-center cursor-pointer bg-gray-100">
             <div class="mb-4">

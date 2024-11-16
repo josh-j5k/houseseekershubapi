@@ -28,6 +28,8 @@ async function getListings(query: any) {
     const { data, error } = await handleRequest('get', 'listings', query)
     if (!error) {
         listings.value.data = data.data.listings
+        listings.value.hasMorePages = data.data.hasMorePages
+        useState('listings', () => listings.value)
     }
     loading.value = false
 }

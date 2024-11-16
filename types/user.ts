@@ -1,6 +1,9 @@
 export type user = {
-    ref: string,
-    email: string,
-    name: string,
-    avatar: string | null
+    user: {
+        ref: string,
+        email: string,
+        name: string,
+        avatar: string | null
+    },
+    access_token: string
 }
