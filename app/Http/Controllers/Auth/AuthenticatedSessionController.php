@@ -6,10 +6,11 @@ use Exception;
 use App\Models\User;
 
 use Illuminate\Http\Request;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Auth\LoginRequest;
-use Laravel\Sanctum\HasApiTokens;
 use Symfony\Component\HttpFoundation\Response as Res;
 
 class AuthenticatedSessionController extends Controller
@@ -22,8 +23,9 @@ class AuthenticatedSessionController extends Controller
     {
 
         try {
-
+            DB::beginTransaction();
             if (
+
                 !Auth::attempt([
                     'email' => $request->email,
                     'password' => $request->password,
@@ -31,13 +33,18 @@ class AuthenticatedSessionController extends Controller
             ) {
                 throw new Exception('Invalid Credentials');
             }
-            $request->session()->regenerate();
-            $user = User::select(['ref', 'email', 'name'])->where('email', $request->email)->get();
 
+            $user_id = User::where('email', $request->email)->value('id');
+            $user = User::find($user_id);
+
+            $token = $user->createToken('access_token');
+
+            DB::commit();
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json(['message' => $th->getMessage()], Res::HTTP_NOT_ACCEPTABLE);
         }
-        return response()->json(['user' => $user[0], 'message' => 'Login successful'], Res::HTTP_ACCEPTED);
+        return response()->json(['user' => $user, 'access_token' => $token->plainTextToken, 'message' => 'Login successful'], Res::HTTP_ACCEPTED);
     }
 
     /**

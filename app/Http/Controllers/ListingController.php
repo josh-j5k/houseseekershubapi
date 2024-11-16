@@ -16,43 +16,90 @@ class ListingController extends Controller
 {
     use ResponseTrait;
     /**
-     * Display a listing of the resource.
+     * Get all listing of the resource.
      */
     public function index(ListingsRequest $request)
     {
 
-        $location = $request->location;
+        try {
+            $location = $request->location;
+            $property_status = $request->status ?? 'any';
 
-        $property_status = $request->property_status ?? 'any';
+            $price = [
+            ];
+            $property_type = filled($request->property_type) ? explode('|', $request->property_type) : [];
 
-        $price = [
-        ];
-        $property_type = filled($request->property_type) ? explode('|', $request->property_type) : [];
-
-        if (filled($request->price)) {
-            $temPrice = explode('|', $request->price);
-            foreach ($temPrice as $item) {
-                if (str_starts_with($item, 'over')) {
-                    $price['min'] = substr($item, 4);
-                } else {
-                    $price['max'] = substr($item, 5);
+            if (filled($request->price)) {
+                $temPrice = explode('|', $request->price);
+                foreach ($temPrice as $item) {
+                    if (str_starts_with($item, 'over')) {
+                        $price['min'] = substr($item, 4);
+                    } else {
+                        $price['max'] = substr($item, 5);
+                    }
                 }
             }
+            $filters = [
+                'location' => $location,
+                'status' => $property_status,
+                'price' => $price,
+                'property_type' => $property_type
+            ];
+
+            $limit = (int) $request->limit ?: 16;
+            $page = (int) $request->page ?: 1;
+            $total = Listing::count();
+
+            $hasMorePages = ($limit * $page) < $total ? true : false;
+            $listings = Listing::orderByDesc('created_at')->filter($filters)
+                ->when($page > 1, function (Builder $builder) use ($page, $limit) {
+                    $builder->offset($page * $limit);
+                })->limit($limit)->get();
+
+            $data = ListingResource::collection($listings);
+
+        } catch (\Throwable $th) {
+            return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        $filters = [
-            'location' => $location,
-            'status' => $property_status,
-            'price' => $price,
-            'property_type' => $property_type
-        ];
+        return $this->response('success', 'All listings', ['listings' => $data, 'hasMorePages' => $hasMorePages], 200);
+    }
+    /**
+     * Get a listing of the resource.
+     */
+    public function show($ref)
+    {
+        try {
+            $listing = Listing::where('ref', $ref)->get();
+            $data = ListingResource::collection($listing);
+        } catch (\Throwable $th) {
+            return $this->response('error', $th->getMessage(), statusCode: 406);
+        }
+        return $this->response('success', 'Listing', $data[0], 200);
+    }
+    /**
+     * Get User Listigs
+     */
+    public function userListings(Request $request)
+    {
+        try {
+            $user = Auth::user();
 
-        $per_page = (int) $request->per_page ?? 16;
-        $listingsBuilder = Listing::filter($filters);
-        $listings = filled($request->limit) ? $listingsBuilder->limit($request->limit)->get() : $listingsBuilder->paginate($per_page);
+            $limit = (int) $request->limit ?: 8;
+            $page = (int) $request->page ?: 1;
+            $total = $user->listings()->count();
 
-        $data = ListingResource::collection($listings);
+            $hasMorePages = ($limit * $page) < $total ? true : false;
+            $listings = Listing::where('user_id', $user->id)->orderByDesc('created_at')
+                ->when($page > 1, function (Builder $builder) use ($page, $limit) {
+                    $builder->offset($page * $limit);
+                })->limit($limit)->get();
 
-        return $this->response('success', 'All listings', $data, 200);
+            $data = ListingResource::collection($listings);
+        } catch (\Throwable $th) {
+            return $this->response('error', $th->getMessage(), statusCode: 406);
+        }
+        return $this->response('success', 'All listings', ['listings' => $data, 'hasMorePages' => $hasMorePages], 200);
+
     }
 
 
@@ -81,6 +128,8 @@ class ListingController extends Controller
             $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
         }
     }
+
+
 
 
 

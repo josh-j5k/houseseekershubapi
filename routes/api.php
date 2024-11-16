@@ -11,6 +11,9 @@ Route::prefix('listings')->group(function () {
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::middleware(['auth:sanctum'])->group(function () {
 
+    Route::prefix('listings')->group(function () {
+        Route::get('/user/listings', [ListingController::class, 'userListings'])->name('user.listings');
+    });
 });
 
 require __DIR__ . '/auth.php';
