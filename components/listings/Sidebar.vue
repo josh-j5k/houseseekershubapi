@@ -1,11 +1,26 @@
 <script setup lang="ts">
 
-const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit } = useListing()
 
 defineProps<{
     sidebarToggled: boolean,
 }>()
 
+const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit } = useListing()
+
+const { suggestions, handleRequest } = usePlaces()
+
+
+async function autocompleteLocation() {
+    if (location.value) {
+        await handleRequest(location.value)
+
+
+    }
+}
+function setLocation(e: string) {
+    suggestions.value = []
+    location.value = e
+}
 function submitPrice(ev: KeyboardEvent) {
 
     if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
@@ -26,11 +41,24 @@ function submitLocation(ev: KeyboardEvent) {
         <div class="">
             <h2 class="capitalize font-bold text-2xl mb-4">location</h2>
             <label for="location" class="sr-only">location</label>
-            <div class="flex gap-3">
-                <input @keydown="submitLocation" v-model="location" :class="errors.locationError && 'border-red-500'"
-                    class="input bg-transparent" type="text" name="" id="location" placeholder="Type your town, region">
+            <div class="flex gap-3 relative">
+                <input @keydown="submitLocation" @change="autocompleteLocation" v-model="location"
+                    :class="errors.locationError && 'border-red-500'" class="input bg-transparent" type="text" name=""
+                    id="location" placeholder="Type your town, region">
                 <button @click="locationSubmit" type="button" title="submit location"><i
                         class="fas fa-chevron-right fa-lg"></i></button>
+                <template v-if="suggestions.length > 0">
+                    <div class="absolute bg-gray-50 w-full min-h-min p-4 top-10 shadow-sm">
+                        <ul>
+                            <template v-for="suggestion in suggestions">
+                                <li class="py-1 hover:text-blue-400 cursor-pointer"
+                                    @click="setLocation(suggestion.placePrediction.text.text)">
+                                    {{ suggestion.placePrediction.text.text }}
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
             </div>
             <p v-if="errors.locationError" class="text-red-500">Please enter a location</p>
         </div>
