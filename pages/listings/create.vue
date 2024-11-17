@@ -117,7 +117,7 @@ onUnmounted(() => {
     <section
         class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center p-8 pt-0 gap-4">
         <div
-            class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-12 lg:pt-28">
+            class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-16 lg:pt-28">
             <form @submit.prevent="submit" enctype="multipart/form-data">
                 <div class="flex flex-col gap-4">
                     <div>

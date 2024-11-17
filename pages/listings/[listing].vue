@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { type Listing } from '@/types/listings'
+import type { user } from '~/types/user';
 definePageMeta({
     layout: 'full-page'
 })
+
+const pageTitle = ref()
+
+useHead({
+    title: pageTitle.value
+})
+
+const canMessageAndShare = ref(false)
 const loading = ref(true)
 const { handleRequest } = useAxios()
 const listing = ref(<Listing>{})
-
 
 const currentIndex = ref(0)
 function prevPic() {
@@ -16,10 +24,20 @@ function prevPic() {
 
     }
 }
+
 (async function () {
     const { data, error } = await handleRequest('get', 'listings/'.concat(useRoute().params.listing.toString()))
     if (!error) {
-        listing.value = data.data
+        listing.value = data.data.listing
+        pageTitle.value = listing.value.title
+        if (import.meta.client) {
+            const user = JSON.parse(localStorage.getItem('user')!) as user | undefined
+            if (user) {
+
+                user.user.ref !== data.data.canShare ? canMessageAndShare.value = true : ''
+
+            }
+        }
     }
     loading.value = false
 })()
@@ -85,24 +103,15 @@ function nextPic() {
                             {{ listing.title }}
                         </h1>
                         <p class="font-bold flex gap-1 text-sm text-accent">
-
                             <span>
-
-                                <span v-if="listing.propertyStatus === 'rent'">
-                                    <span>{{ listing.price.toLocaleString('en-US', {
-                                        style: 'currency',
-                                        currency: 'XAF'
-                                    }) }}</span>/Month
-                                </span>
-                                <span v-else>
-                                    {{ listing.price.toLocaleString('en-US', {
-                                        style: 'currency',
-                                        currency: 'XAF'
-                                    }) }}
-                                </span>
+                                <span>{{ listing.price.toLocaleString('en-US', {
+                                    style: 'currency',
+                                    currency: 'XAF'
+                                }) }} {{ listing.propertyStatus === 'rent' ? '/Month' : '' }}</span>
                             </span>
+
                         </p>
-                        <p class=" mb-6 text-sm text-gray-600">
+                        <p class=" mb-6 text-sm text-gray-600 uppercase">
                             <span>
                                 Property for
                             </span>
@@ -110,35 +119,57 @@ function nextPic() {
                                 {{ listing.propertyStatus }}
                             </span>
                         </p>
-                        <div class="flex gap-4">
-                            <button type="button" title="message"
-                                class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                <span>
-                                    <i class="fa-regular fa-comments"></i>
-                                </span>
-                                <span class="capitalize">
-                                    message
-                                </span>
-                            </button>
-                            <button type="button" title="like"
-                                class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                <span>
-                                    <i class="fa-regular fa-heart"></i>
-                                </span>
-                            </button>
-                            <button type="button" title="share"
-                                class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                <span>
-                                    <i class="fa-solid fa-share"></i>
-                                </span>
-                            </button>
-                            <button type="button" title="share"
-                                class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                <span>
-                                    <i class="fa-solid fa-ellipsis"></i>
-                                </span>
-                            </button>
-                        </div>
+                        <ClientOnly>
+                            <div class="flex gap-4">
+                                <template v-if="canMessageAndShare">
+                                    <button type="button" title="message"
+                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                        <span>
+                                            <i class="fa-regular fa-comments"></i>
+                                        </span>
+                                        <span class="capitalize">
+                                            message
+                                        </span>
+                                    </button>
+                                    <button type="button" title="like"
+                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                        <span>
+                                            <i class="fa-regular fa-heart"></i>
+                                        </span>
+                                    </button>
+                                </template>
+                                <button type="button" title="share"
+                                    class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                    <span>
+                                        <i class="fa-solid fa-share"></i>
+                                    </span>
+                                </button>
+                                <button type="button" title="share"
+                                    class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                    <span>
+                                        <i class="fa-solid fa-ellipsis"></i>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <template #fallback>
+                                <div class="flex gap-4">
+                                    <button type="button" title="share"
+                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                        <span>
+                                            <i class="fa-solid fa-share"></i>
+                                        </span>
+                                    </button>
+                                    <button type="button" title="share"
+                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                        <span>
+                                            <i class="fa-solid fa-ellipsis"></i>
+                                        </span>
+                                    </button>
+                                </div>
+                            </template>
+
+                        </ClientOnly>
                     </div>
                     <hr class="w-full bg-slate-300 my-4">
                     <div class="pb-4">

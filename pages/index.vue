@@ -215,36 +215,18 @@ onMounted(() => {
                 <template v-else>
                     <template v-for="(listing, index) in listings.data">
                         <Card class="bg-white relative">
-                            <div>
-                                <img lazy v-if="listing.images?.length > 0" :src="listing.images[0]" alt="listing image"
-                                    class="w-full aspect-square">
-                                <img v-else src="/Images/no_image_placeholder.jpg" alt="">
-                            </div>
+                            <img lazy :src="listing.images[0]" alt="listing image" class="w-full aspect-square">
                             <div class="p-4">
                                 <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
-
-
-
-                                    <span v-if="listing.propertyStatus === 'rent'">
-                                        <span>{{ listing.price.toLocaleString('en-US', {
-                                            style: 'currency',
-                                            currency: 'XAF'
-                                        }) }}</span>/Month
-                                    </span>
-                                    <span v-else>
-                                        {{ listing.price.toLocaleString('en-US', {
-                                            style: 'currency',
-                                            currency: 'XAF'
-                                        }) }}
-                                    </span>
-
+                                    <span>{{ listing.price.toLocaleString('en-US', {
+                                        style: 'currency',
+                                        currency: 'XAF'
+                                    }) }}{{ listing.propertyStatus === 'rent' ? '/Month' : '' }}</span>
                                 </p>
                                 <div>
                                     <p class="font-bold mb-1">
                                         {{ listing.title.slice(0, 35) }}
                                     </p>
-
-
                                 </div>
                                 <p class="text-sm opacity-75 mb-3 capitalize">
                                     {{ listing.propertyType }}

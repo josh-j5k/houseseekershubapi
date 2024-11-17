@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type Listings, type Listing } from '~/types/listings';
+import toast from '~/utils/toastNotification';
 
 definePageMeta({
     layout: "authenticated",
@@ -13,7 +14,7 @@ const loading = ref(true)
 const { validation, formErrors } = useListingFormValidator()
 const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr, } = useFileUpload()
 
-const { handleRequest } = useAxios()
+const { handleRequest, btnLoading } = useAxios()
 
 const userListings = <Listings | undefined>useState('userListings').value
 if (userListings) {
@@ -131,7 +132,13 @@ function submit() {
     }
 }
 
-function deleteConfirmed() {
+async function deleteConfirmed() {
+    const { data, error } = await handleRequest('delete', 'listings/delete/'.concat(listings.value.data[currentIndex.value].ref))
+    if (!error) {
+        toast('Success', 'Listing was deleted successfully!')
+    } else {
+        toast('Error', data.message)
+    }
     // router.delete(route('listings.delete', listings.data[currentIndex.value].id), {
     //     onSuccess: () => {
     //         show_delete_warning.value = false
@@ -157,9 +164,9 @@ onMounted(() => {
         </div>
     </template>
     <template v-else>
-        <div class="pb-12 py-4 lg:h-[calc(100vh-65px)] lg:overflow-hidden">
-            <div class="max-w-7xl bg-white shadow-sm  h-full w-full sm:rounded-lg mx-auto sm:px-6 lg:px-8">
-                <div v-if="listings.data && listings.data.length == 0" class="p-6 text-center text-gray-900">
+        <div class=" py-2 lg:h-[calc(100vh-65px)] lg:overflow-hidden">
+            <div class="w-[98%] bg-white shadow-sm  h-full -md:w-full sm:rounded-lg mx-auto sm:px-6 lg:px-2">
+                <div v-if="listings.data && listings.data.length == 0" class="p-4 pt-8 text-center text-gray-900">
                     <h2 class="text-2xl mb-4 font-bold">
                         You have no listings
                     </h2>
@@ -173,32 +180,22 @@ onMounted(() => {
                     </NuxtLink>
 
                 </div>
-                <div v-else class="p-6 h-full text-gray-900 gap-8 overflow-hidden lg:grid grid-cols-[45%_55%]">
+                <div v-else class="p-2 h-full text-gray-900 gap-8 overflow-hidden lg:grid grid-cols-[45%_55%]">
                     <div class="flex overflow-auto flex-col gap-4">
                         <template v-for="(listing, index) in listings.data">
-                            <Card @click="currentIndex = index" class="bg-white flex gap-4 cursor-pointer -lg:hidden">
-                                <div>
-                                    <img v-if="listing.images.length > 0" :src="listing.images[0]" alt=""
-                                        class="max-w-[200px] object-cover aspect-square -md:max-w-[150px]">
-                                    <img v-else src="/Images/no_image_placeholder.jpg" alt=""
-                                        class="h-full object-cover max-w-[200px] -md:max-w-[150px]">
-                                </div>
+                            <Card @click="currentIndex = index"
+                                :class="currentIndex == index ? 'border-l-2 border-blue-600' : ''"
+                                class="bg-white flex gap-4 cursor-pointer -lg:hidden">
+
+                                <img :src="listing.images[0]" alt=""
+                                    class="max-w-[200px] object-cover aspect-square -md:max-w-[150px]">
+
                                 <div class="p-4">
                                     <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
-                                        <span>
-                                            XAF
-                                        </span>
-                                        <span>
-
-                                            <span v-if="listing.propertyStatus === 'rent'">
-                                                <span>{{ listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                    ",").concat('.00') }}</span>/Month
-                                            </span>
-                                            <span v-else>
-                                                {{ listing.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,
-                                                    ",").concat('.00') }}
-                                            </span>
-                                        </span>
+                                        <span>{{ listing.price.toLocaleString('en-US', {
+                                            style: 'currency',
+                                            currency: 'XAF'
+                                        }) }}{{ listing.propertyStatus == 'rent' ? '/Month' : '' }}</span>
                                     </p>
                                     <div>
 
@@ -467,7 +464,7 @@ onMounted(() => {
                 </span>
             </p>
             <div class="flex justify-between">
-                <button @click="deleteConfirmed" class="flex gap-2 py-1 px-3 rounded bg-gray-500 text-white">
+                <button @click="deleteConfirmed" class="flex gap-2 py-1 px-3 rounded  bg-red-500 text-white">
                     <span>
                         <i class="fas fa-check"></i>
                     </span>
@@ -475,7 +472,7 @@ onMounted(() => {
                         Yes
                     </span>
                 </button>
-                <button @click="closeDeleteWarning" class="flex gap-2 py-1 px-3 rounded bg-red-500 text-white">
+                <button @click="closeDeleteWarning" class="flex gap-2 py-1 px-3 rounded bg-gray-500 text-white">
                     <span>
                         <i class="fas fa-xmark"></i>
                     </span>

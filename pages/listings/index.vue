@@ -77,7 +77,7 @@ storeListings == undefined ? init() : ''
                                     class="rounded w-7 h-7 group">
                                     <span
                                         class="grid grid-cols-3 grid-rows-3 h-full w-full items-center justify-center">
-                                        <template v-for="item in 9">
+                                        <template v-for="_ in 9">
                                             <span class="w-1.5 aspect-square rounded-full group-hover:bg-blue-500"
                                                 :class="[activeGrid === 'grid' ? 'bg-accent' : 'bg-dark-blue']"></span>
                                         </template>
@@ -87,7 +87,7 @@ storeListings == undefined ? init() : ''
                                     class="rounded w-7 h-7 group">
                                     <span
                                         class="grid grid-cols-[25%_75%] grid-rows-3 h-full w-full items-center justify-center">
-                                        <template v-for="item in 6">
+                                        <template v-for="_ in 6">
                                             <span
                                                 class="w-1 h-1 rounded-full even:w-5/6 even:h-0.5 group-hover:bg-blue-500"
                                                 :class="[activeGrid === 'tiles' ? 'bg-blue-500' : 'bg-dark-blue']"></span>
@@ -134,32 +134,18 @@ storeListings == undefined ? init() : ''
                                     <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
                                         <Card class="bg-white relative"
                                             :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
-                                            <div>
-                                                <img v-if="listing.images?.length > 0" :src="listing.images[0]" alt=""
-                                                    class="md:aspect-square object-cover"
-                                                    :class="[activeGrid === 'tiles' ? 'max-w-[200px] -md:max-w-[150px] rounded-l-lg  -md:h-full' : 'w-full aspect-square rounded-tr-lg rounded-tl-lg']">
-                                                <img v-else src="/Images/no_image_placeholder.jpg" alt=""
-                                                    :class="[activeGrid === 'tiles' ? 'max-w-[200px] md:aspect-square  -md:h-full object-cover -md:max-w-[150px]' : '']">
-                                            </div>
+
+                                            <img :src="listing.images[0]" alt="" class="md:aspect-square object-cover"
+                                                :class="[activeGrid === 'tiles' ? 'max-w-[200px] -md:max-w-[150px] rounded-l-lg  -md:h-full' : 'w-full aspect-square rounded-tr-lg rounded-tl-lg']">
+
                                             <div class="p-4">
                                                 <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
-
-
-
-                                                    <span v-if="listing.propertyStatus === 'rent'">
-                                                        <span>{{
-                                                            listing.price.toLocaleString('en-US', {
-                                                                style: 'currency',
-                                                                currency: 'XAF'
-                                                            }) }}</span>/Month
-                                                    </span>
-                                                    <span v-else>
-                                                        {{ listing.price.toLocaleString('en-US', {
+                                                    <span>{{
+                                                        listing.price.toLocaleString('en-US', {
                                                             style: 'currency',
                                                             currency: 'XAF'
-                                                        }) }}
-                                                    </span>
-
+                                                        }) }}{{ listing.propertyStatus === 'rent' ? '/Month' : ''
+                                                        }}</span>
                                                 </p>
                                                 <div>
                                                     <p v-if="activeGrid === 'grid'" class="font-bold mb-1">
