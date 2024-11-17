@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use Exception;
 use App\Models\User;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request)
+    public function store(LoginRequest $request): JsonResponse
     {
 
         try {
@@ -34,8 +35,7 @@ class AuthenticatedSessionController extends Controller
                 throw new Exception('Invalid Credentials');
             }
 
-            $user_id = User::where('email', $request->email)->value('id');
-            $user = User::find($user_id);
+            $user = User::where('email', $request->email)->firstOr();
 
             $token = $user->createToken('access_token');
 
@@ -50,14 +50,14 @@ class AuthenticatedSessionController extends Controller
     /**
      * Destroy an authenticated session.
      */
-    // public function destroy(Request $request): Response
-    // {
-    //     Auth::guard('web')->logout();
+    public function destroy(Request $request): JsonResponse
+    {
+        Auth::user()->revoke;
 
-    //     $request->session()->invalidate();
+        $request->session()->invalidate();
 
-    //     $request->session()->regenerateToken();
+        $request->session()->regenerateToken();
 
-    //     return response()->noContent();
-    // }
+        return response()->noContent();
+    }
 }

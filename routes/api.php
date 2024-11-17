@@ -6,12 +6,16 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::prefix('listings')->group(function () {
     Route::get('/', [ListingController::class, 'index'])->name('listings');
-    Route::get('/{listing}', [ListingController::class, 'show'])->name('listings');
+    Route::get('/{ref}', [ListingController::class, 'show'])->name('listings.show');
+
 });
-Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::prefix('listings')->group(function () {
+        Route::post('/store', [ListingController::class, 'store'])->name('listings.store');
+        Route::put('/update', [ListingController::class, 'update'])->name('listings.update');
+        Route::delete('/delete/{ref}', [ListingController::class, 'update'])->name('listings.delete');
         Route::get('/user/listings', [ListingController::class, 'userListings'])->name('user.listings');
     });
 });

@@ -2,18 +2,16 @@
 
 namespace App\Models;
 
-use App\Models\User;
+
+use App\Models\Traits\ListingRelationsTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Traits\ListingQueryScopeFilter;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Listing extends Model
 {
-    use HasFactory, HasUuids, ListingQueryScopeFilter;
+    use HasFactory, HasUuids, ListingQueryScopeFilter, ListingRelationsTrait;
     protected $fillable = [
         'title',
         'ref',
@@ -25,19 +23,4 @@ class Listing extends Model
         'description'
     ];
 
-
-    public function uploads(): MorphMany
-    {
-        return $this->morphMany(Upload::class, 'uploadable');
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function bookmarks(): HasMany
-    {
-        return $this->hasMany(Bookmark::class);
-    }
 }
