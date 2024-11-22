@@ -14,7 +14,18 @@ function closeDropdown(ev: MouseEvent) {
     }
 }
 
+async function logout() {
+    const { handleRequest } = useAxios()
+    const { error } = await handleRequest('post', '/logout')
 
+    const routes = ['index', 'listings', 'contact', 'about']
+    if (!error) {
+        navigateTo('/login')
+    } else {
+        console.log(error);
+
+    }
+}
 onMounted(() => {
     document.documentElement.addEventListener('click', closeDropdown)
 
@@ -145,7 +156,7 @@ onUnmounted(() => {
                                             class="capitalize">
                                             profile
                                         </NuxtLink>
-                                        <button @click="console.log('click')" as="button" class="capitalize">
+                                        <button @click="logout" as="button" class="capitalize cursor-pointer">
                                             logout
                                         </button>
 

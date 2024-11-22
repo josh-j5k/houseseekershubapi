@@ -26,7 +26,7 @@ function prevPic() {
 }
 
 (async function () {
-    const { data, error } = await handleRequest('get', 'listings/'.concat(useRoute().params.listing.toString()))
+    const { data, error } = await handleRequest('get', '/listings/'.concat(useRoute().params.listing.toString()))
     if (!error) {
         listing.value = data.data.listing
         pageTitle.value = listing.value.title

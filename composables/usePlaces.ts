@@ -1,8 +1,7 @@
 import axios from "axios"
+import type { suggestions } from "~/types/listings"
 
-type suggestions = Array<{
-    placePrediction: { text: { matches: string[], text: string } }
-}>
+
 const url = import.meta.env.VITE_GOOGLE_PLACES
 const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY
 const includedRegionCodes = ["cm"]
@@ -19,9 +18,12 @@ export default function usePlaces() {
 
         }
     }
-
+    function closeSuggestion() {
+        suggestions.value = <suggestions>[]
+    }
     return {
-        suggestions,
-        handleRequest
+        suggestions: readonly(suggestions),
+        handleRequest,
+        closeSuggestion
     }
 }

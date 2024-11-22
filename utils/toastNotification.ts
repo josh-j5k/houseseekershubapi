@@ -1,6 +1,6 @@
 type typeOfMessage = 'Success' | 'Error'
 
-export default function toast(typeOfMessage: typeOfMessage, message: string) {
+export default function (typeOfMessage: typeOfMessage, message: string) {
     const timeout = 5000;
     const div = document.createElement("div");
     const progressBar = document.createElement("div");

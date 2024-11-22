@@ -57,7 +57,7 @@ function closeEditModal() {
 
 if (userListings == undefined) {
     (async function () {
-        const { data, error } = await handleRequest('get', 'listings/user/listings')
+        const { data, error } = await handleRequest('get', '/listings/user/listings')
         if (!error) {
             listings.value.data = data.data.listings
             listings.value.hasMorePages = data.data.hasMorePages
@@ -133,19 +133,13 @@ function submit() {
 }
 
 async function deleteConfirmed() {
-    const { data, error } = await handleRequest('delete', 'listings/delete/'.concat(listings.value.data[currentIndex.value].ref))
+    const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.data[currentIndex.value].ref))
     if (!error) {
         toast('Success', 'Listing was deleted successfully!')
     } else {
         toast('Error', data.message)
     }
-    // router.delete(route('listings.delete', listings.data[currentIndex.value].id), {
-    //     onSuccess: () => {
-    //         show_delete_warning.value = false
-    //         toast('Success', 'Listing was deleted successfully!')
 
-    //     }
-    // })
 }
 
 

@@ -43,11 +43,13 @@ export default function useAxios() {
 
         if (user.value) {
             headers['Authorization'] = "Bearer " + user.value.access_token
-        } else {
+        }
+        if (method !== 'get') {
             options.withCredentials = true,
                 options.withXSRFToken = true
             await axios.get(xsrfUrl)
         }
+
         if (method == 'get' && query) {
             for (const key in query) {
                 const value = query[key] as string;

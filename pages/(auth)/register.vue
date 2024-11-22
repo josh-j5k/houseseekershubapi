@@ -78,7 +78,7 @@ const form = reactive({
                     </PrimaryButton>
                 </div>
             </form>
-            <LoginWithSocials />
+            <LoginWithSocials google_name="Signup" />
         </div>
     </div>
 </template>

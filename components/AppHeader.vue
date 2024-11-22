@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { user } from '~/types/user';
 
+
 const user = useState('user').value as user
 const toggled = ref(false)
 const dropdownToggled = ref(false)
@@ -24,6 +25,19 @@ function closeDropdown(ev: MouseEvent) {
 
     }
 }
+async function logout() {
+    const { handleRequest } = useAxios()
+    const { error } = await handleRequest('post', '/logout')
+
+    const routes = ['index', 'listings', 'contact', 'about']
+    if (!error) {
+        navigateTo('/')
+    } else {
+        console.log(error);
+
+    }
+}
+
 onMounted(() => {
     document.documentElement.addEventListener('click', closeDropdown)
 
@@ -81,7 +95,7 @@ onUnmounted(() => {
                 <div class="flex gap-6 -lg:justify-between -lg:pt-8 -lg:border-t">
 
                     <div class="flex items-center gap-2 h-12">
-                        <button type="button" title="New listing" @click="$router.push('/listings/create')"
+                        <button type="button" title="New listing" @click="$router.push({ name: 'listings-create' })"
                             class="text-white hover:bg-accent-hover bg-accent flex items-center justify-center gap-2 h-9 w-32 rounded-md ">
                             <span>
                                 <i class="fas fa-circle-plus"></i>
@@ -137,7 +151,7 @@ onUnmounted(() => {
                                                 profile
                                             </NuxtLink>
                                         </li>
-                                        <li @click="console.log('logout')" class="capitalize">
+                                        <li role="button" @click="logout" class="capitalize cursor-pointer">
                                             logout
                                         </li>
                                     </ul>
@@ -170,7 +184,7 @@ onUnmounted(() => {
     <!-- Mobile hamburger menu -->
 
     <ClientOnly>
-        <HeaderHambugerMenu :dropdown-toggled :user="user" />
+        <HeaderHambugerMenu @logout="logout" :dropdown-toggled :user="user" />
     </ClientOnly>
 </template>
 

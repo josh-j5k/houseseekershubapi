@@ -1,13 +1,6 @@
-export type Query = {
-    location: string | null,
-    status: "any" | "rent" | "sale",
-    price: {
-        min: string | null,
-        max: string | null
-    },
-    property_type: string[]
-}
-
+export type suggestions = Array<{
+    placePrediction: { text: { matches: string[], text: string } }
+}>
 
 export type Listing = {
 

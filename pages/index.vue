@@ -11,12 +11,7 @@ const options = {
     componentRestrictions: { country: "cm" },
     strictBounds: false,
 };
-// const loader = new Loader({
-//     apiKey: "AIzaSyAj3t8m1tT8R9LuME3pcNedY9IK6aUjsu4",
-//     version: "weekly",
-//     libraries: ['places'],
-// });
-// const { usePlaces } = useGoogleMaps()
+
 const input = ref('input')
 const form = reactive({
     status: 'any',
@@ -40,7 +35,7 @@ function submit() {
 (async function () {
     if (storeListings == undefined) {
         loading.value = true
-        const { data, error } = await handleRequest('get', 'listings?limit=4')
+        const { data, error } = await handleRequest('get', '/listings?limit=4')
         if (!error) {
             listings.value.data = data.data.listings
             loading.value = false

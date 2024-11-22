@@ -7,19 +7,18 @@ defineProps<{
 
 const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit } = useListing()
 
-const { suggestions, handleRequest } = usePlaces()
+const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 
 
 async function autocompleteLocation() {
     if (location.value) {
         await handleRequest(location.value)
 
-
     }
 }
 function setLocation(e: string) {
-    suggestions.value = []
     location.value = e
+    closeSuggestion()
 }
 function submitPrice(ev: KeyboardEvent) {
 
@@ -48,16 +47,7 @@ function submitLocation(ev: KeyboardEvent) {
                 <button @click="locationSubmit" type="button" title="submit location"><i
                         class="fas fa-chevron-right fa-lg"></i></button>
                 <template v-if="suggestions.length > 0">
-                    <div class="absolute bg-gray-50 w-full min-h-min p-4 top-10 shadow-sm">
-                        <ul>
-                            <template v-for="suggestion in suggestions">
-                                <li class="py-1 hover:text-blue-400 cursor-pointer"
-                                    @click="setLocation(suggestion.placePrediction.text.text)">
-                                    {{ suggestion.placePrediction.text.text }}
-                                </li>
-                            </template>
-                        </ul>
-                    </div>
+                    <ListingsLocationSuggestions @set-location="setLocation" />
                 </template>
             </div>
             <p v-if="errors.locationError" class="text-red-500">Please enter a location</p>

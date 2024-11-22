@@ -6,6 +6,10 @@ defineProps<{
     dropdownToggled: boolean,
     user: undefined | user
 }>()
+const emit = defineEmits(['logout'])
+function logout() {
+    emit('logout')
+}
 </script>
 
 <template>
@@ -18,9 +22,9 @@ defineProps<{
             <li class="capitalize">
                 <NuxtLink :to="{ name: 'au-id-profile', params: { id: user.user.ref } }">profile</NuxtLink>
             </li>
-            <li @click="console.log('logout')" class="capitalize">
+            <button @click="logout" class="capitalize">
                 logout
-            </li>
+            </button>
         </ul>
     </div>
 </template>

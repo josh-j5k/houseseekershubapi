@@ -214,7 +214,8 @@ onUnmounted(() => {
                     <p v-if="formErrors.descriptionError" class="text-red-500">
                         Please enter a description.
                     </p>
-                    <button type="submit" class="bg-accent py-3 px-6 text-white">
+                    <button :disabled="user === undefined" type="submit" class="bg-accent py-3 px-6 text-white"
+                        :class="[user === undefined ? 'cursor-not-allowed opacity-90' : '']">
                         Publish
                     </button>
                 </div>
@@ -222,7 +223,7 @@ onUnmounted(() => {
         </div>
         <div class="lg:col-start-2 lg:col-end-3">
             <div class="w-full lg:h-[90vh] m-auto overflow-hidden bg-white shadow rounded-md  p-4 pb-11">
-                <div v-if="user === null" class=" text-red-500 text center bg-white p-4">
+                <div v-if="user === undefined" class=" text-red-500 text center bg-white p-4">
                     <p class="text-center">
                         You need to be an authenticated user to
                         publish a
