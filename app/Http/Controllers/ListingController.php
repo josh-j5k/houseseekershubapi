@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Listing;
-use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
-use App\Traits\ResponseTrait;
+
+use App\Jobs\ImageProcessingJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ImageCompressHelper;
@@ -14,10 +15,10 @@ use App\Http\Requests\ListingsRequest;
 use App\Http\Resources\ListingResource;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Requests\ListingStoreRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ListingController extends Controller
 {
-    use ResponseTrait;
     /**
      * Get all listing of the resource.
      */
@@ -125,17 +126,11 @@ class ListingController extends Controller
                 'description' => $request->description,
                 'location' => $request->location,
                 'price' => $request->price,
-                'propery_status' => $request->property_status
+                'propery_status' => $request->property_status,
+                'ref' => Str::uuid()
             ]);
 
-            foreach ($request->inputFiles as $file_input) {
-                $folder = date("Y");
-                $subFolders = date("m");
-
-                $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
-
-                $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
-            }
+            ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -165,28 +160,17 @@ class ListingController extends Controller
                 'property_status' => $request->property_status,
                 'description' => $request->description,
             ];
+            $listing->update($form_fields);
             if ($request->deletedImages !== null) {
                 foreach ($request->deletedImages as $image) {
-                    $listing->listingImage()->where('listing_image', $image)->delete();
+                    $listing->uploads()->where('url', $image)->delete();
                     if (is_dir(public_path($image))) {
                         unlink(public_path($image));
                     }
                 }
             }
-            if ($request->hasFile('inputFiles')) {
-                foreach ($request->inputFiles as $file_input) {
-                    $folder = date("Y");
-                    $subFolders = date("m");
+            ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
 
-                    $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
-
-                    $listing->uploads()->updateOrCreate([
-                        'listing_image' => $url,
-                        'listing_id' => $listing->id
-                    ]);
-                }
-            }
-            $listing->update($form_fields);
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();

@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration {
     /**
@@ -13,9 +14,10 @@ return new class extends Migration {
         Schema::create('messages', function (Blueprint $table) {
             $table->id();
             $table->uuid('ref');
-            $table->foreign(['senders_id', 'receivers_id'])->references('id')->on('users')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('senders_id')->constrained('users', 'id', 'message_users_senders_id')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('receivers_id')->constrained('users', 'id', 'message_users_receivers_id')->cascadeOnDelete()->cascadeOnUpdate();
             $table->text('message');
-            $table->boolean('seen');
+            $table->boolean('seen')->default(0);
 
             $table->timestamps();
         });

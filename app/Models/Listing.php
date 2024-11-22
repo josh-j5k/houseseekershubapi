@@ -14,13 +14,13 @@ class Listing extends Model
     use HasFactory, HasUuids, ListingQueryScopeFilter, ListingRelationsTrait;
     protected $fillable = [
         'title',
-        'ref',
         'user_id',
         'property_status',
         'property_type',
         'location',
         'price',
-        'description'
+        'description',
+        'ref'
     ];
 
 }

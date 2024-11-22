@@ -25,7 +25,9 @@ class ListingResource extends JsonResource
         $images = [];
         foreach ($this->uploads as $image) {
 
-            $images[] = is_dir('images') ? config('app.url') . "/images$image->url" : $image->url;
+            if (config('app.filesystem_disk') == 'local') {
+                $images[] = config('app.url') . "/$image->url";
+            }
         }
         return [
 

@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\File;
 
-class ListingStoreRequest extends FormRequest
+class MessageStoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,12 +22,8 @@ class ListingStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "title" => ['required', 'string'],
-            'description' => ['required', 'string'],
-            'property_status' => ['required', 'string'],
-            'location' => ['required', 'string'],
-            'price' => ['required', 'int'],
-            'inputFiles' => ['required', File::types(['jpg', 'webp', 'png'])]
+            'message' => 'required',
+            'receivers_ref' => 'required'
         ];
     }
 }
