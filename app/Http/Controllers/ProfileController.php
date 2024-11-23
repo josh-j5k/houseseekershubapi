@@ -18,32 +18,17 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): Response
+    public function edit(Request $request)
     {
-        return Inertia::render('Dashboard/Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
-        ]);
+
     }
 
     /**
      * Update the user's profile information.
      */
-    public function updateAvatar(Request $request): RedirectResponse
+    public function updateAvatar(Request $request)
     {
-        $user_id = $request->user()->id;
-        $current_avatar = User::where('id', $request->user()->id)->value('avatar');
-        if (is_dir(public_path($current_avatar))) {
 
-            unlink(public_path($current_avatar));
-        }
-        $folder = date("Y");
-        $subFolders = date("m");
-        $image_compresser = new ImageCompressHelper($request->avatar[0], 100, 100, $folder, $subFolders, 'avatars');
-        $avatar = $image_compresser->compress();
-        User::where('id', $request->user()->id)->update(['avatar' => $avatar]);
-
-        return Redirect::route('user.profile.edit', $user_id);
     }
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {

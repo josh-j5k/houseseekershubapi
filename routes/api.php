@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\MessageController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::prefix('listings')->group(function () {
@@ -11,6 +12,7 @@ Route::prefix('listings')->group(function () {
 
 });
 
+Route::post('/contact', [ContactController::class, 'store']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix("messages")->group(function () {
         Route::get('/', [MessageController::class, 'index']);
