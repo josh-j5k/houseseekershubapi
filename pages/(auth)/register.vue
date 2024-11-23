@@ -2,7 +2,11 @@
 definePageMeta({
     middleware: 'authenticated'
 })
-
+const { handleRequest, btnLoading } = useBackend()
+const status = ref({
+    error: false,
+    message: null
+})
 const form = reactive({
     name: '',
     email: '',
@@ -10,13 +14,23 @@ const form = reactive({
     password_confirmation: '',
 });
 
-// const submit = () => {
-//     form.post(route('register'), {
-//         onFinish: () => {
-//             form.reset('password', 'password_confirmation');
-//         },
-//     });
-// };
+const submit = async () => {
+    const { error, data } = await handleRequest('post', '/register', form)
+    if (error) {
+        status.value.error = true
+        status.value.message = data.message
+        setTimeout(() => {
+            status.value.message = null
+            status.value.error = false
+        }, 4000);
+        return
+    }
+    localStorage.setItem('user', JSON.stringify({ access_token: data.access_token, user: data.user }))
+    let auUser = { user: data.user, access_token: data.access_token }
+    useState('user', () => auUser)
+
+    navigateTo({ name: 'au-id', params: { id: data.user.ref } })
+};
 </script>
 
 <template>
@@ -25,9 +39,12 @@ const form = reactive({
     <div class="min-h-screen flex flex-col sm:justify-center items-center py-8 sm:pt-0 bg-gray-100 -sm:pt-24">
 
         <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+            <div v-if="status.message" class="mb-4 font-medium text-center text-sm "
+                :class="status.error ? 'text-red-600' : 'text-green-600'">
+                {{ status.message }}
+            </div>
 
-
-            <form @submit.prevent="console.log('hee')">
+            <form @submit.prevent="submit">
                 <div>
                     <label for="name">
                         Name
@@ -73,7 +90,7 @@ const form = reactive({
                         Already registered?
                     </NuxtLink>
 
-                    <PrimaryButton class="ml-4">
+                    <PrimaryButton :loading="btnLoading" class="ml-4">
                         Register
                     </PrimaryButton>
                 </div>

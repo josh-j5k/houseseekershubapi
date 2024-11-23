@@ -4,7 +4,7 @@ import type { Listings } from '~/types/listings';
 
 const loading = ref(true)
 const listings = ref(<Listings>{})
-const { handleRequest } = useAxios()
+const { handleRequest } = useBackend()
 const location = ref(<string | null>null)
 const errors = reactive({
     locationError: false,

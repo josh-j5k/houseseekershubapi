@@ -8,7 +8,7 @@ export default function (typeOfMessage: typeOfMessage, message: string) {
     div.className = "toast py-2 px-4 shadow-lg bg-gray-100 text-slate-700";
     p.textContent = message;
     div.append(p, progressBar);
-    document.getElementById("app")?.appendChild(div);
+    document.documentElement.appendChild(div);
     if (typeOfMessage === "Success") {
         div.classList.add("toast_success");
     } else {

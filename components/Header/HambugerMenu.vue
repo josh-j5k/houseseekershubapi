@@ -6,10 +6,7 @@ defineProps<{
     dropdownToggled: boolean,
     user: undefined | user
 }>()
-const emit = defineEmits(['logout'])
-function logout() {
-    emit('logout')
-}
+
 </script>
 
 <template>

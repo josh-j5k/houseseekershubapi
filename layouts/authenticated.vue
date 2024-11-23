@@ -14,18 +14,7 @@ function closeDropdown(ev: MouseEvent) {
     }
 }
 
-async function logout() {
-    const { handleRequest } = useAxios()
-    const { error } = await handleRequest('post', '/logout')
 
-    const routes = ['index', 'listings', 'contact', 'about']
-    if (!error) {
-        navigateTo('/login')
-    } else {
-        console.log(error);
-
-    }
-}
 onMounted(() => {
     document.documentElement.addEventListener('click', closeDropdown)
 
@@ -130,6 +119,7 @@ onUnmounted(() => {
                                     <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle"
                                         type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
                                         <span v-if="authUser.user.avatar">
+
                                             <img :src="authUser.user.avatar" alt="user avatar"
                                                 class="w-8 aspect-square rounded-full">
                                         </span>

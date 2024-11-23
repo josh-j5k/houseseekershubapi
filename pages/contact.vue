@@ -1,5 +1,5 @@
 <script setup lang="ts">
-
+const { handleRequest } = useBackend()
 const formError = reactive({
     full_name: false,
     email: false,
@@ -7,14 +7,54 @@ const formError = reactive({
     description: false
 })
 const form = reactive({
-    full_name: '',
+    name: '',
     email: '',
     category: '',
     description: ''
 })
 
-const limit = ref(140)
+const limit = ref(255)
 const charactersRemaining = computed(() => limit.value - form.description.length)
+function validate() {
+    if (form.name.length == 0) {
+        formError.full_name = true
+        setTimeout(() => {
+            formError.full_name = false
+        }, 4000);
+        return false
+    }
+    if (form.email.length == 0) {
+        formError.email = true
+        setTimeout(() => {
+            formError.email = false
+        }, 4000);
+        return false
+    }
+    if (form.category.length == 0) {
+        formError.category = true
+        setTimeout(() => {
+            formError.category = false
+        }, 4000);
+        return false
+    }
+    if (form.description.length == 0) {
+        formError.description = true
+        setTimeout(() => {
+            formError.description = false
+        }, 4000);
+        return false
+    }
+    return true
+}
+async function submit() {
+    console.log(form);
+
+    if (validate()) {
+        const { error, data } = await handleRequest('post', '/contact', form)
+        console.log(data);
+        toastNotification('Success', 'Feedback sent successsfully')
+    }
+}
 </script>
 <template>
 
@@ -29,15 +69,15 @@ const charactersRemaining = computed(() => limit.value - form.description.length
                     contact us
                 </h1>
 
-                <form action="">
+                <form @submit.prevent="submit">
                     <div class="flex flex-col gap-8">
                         <div class="flex gap-4 -md:flex-col">
                             <div class="flex flex-col gap-1 w-full">
                                 <label for="full_name" class="capitalize">
                                     name
                                 </label>
-                                <input placeholder="Enter your name" type="text" name="full_name" id="full_name"
-                                    class="input" :class="[formError.full_name ? 'border-red-500' : '']">
+                                <input v-model="form.name" placeholder="Enter your name" type="text" name="full_name"
+                                    id="full_name" class="input" :class="[formError.full_name ? 'border-red-500' : '']">
                                 <p v-if="formError.full_name" class="text-red-500">
                                     This field is required
                                 </p>
@@ -46,8 +86,8 @@ const charactersRemaining = computed(() => limit.value - form.description.length
                                 <label for="email" class="capitalize">
                                     email
                                 </label>
-                                <input placeholder="Enter your email" type="email" name="email" id="email" class="input"
-                                    :class="[formError.email ? 'border-red-500' : '']">
+                                <input v-model="form.email" placeholder="Enter your email" type="email" name="email"
+                                    id="email" class="input" :class="[formError.email ? 'border-red-500' : '']">
                                 <p v-if="formError.email" class="text-red-500">
                                     This field is required
                                 </p>
@@ -93,7 +133,7 @@ const charactersRemaining = computed(() => limit.value - form.description.length
                             with us, please contact the agent or new home developer directly for the relevant
                             property rather than using this form.
                         </div>
-                        <button
+                        <button type="submit"
                             class="flex py-4 justify-center items-center bg-accent rounded hover:bg-accent-hover text-white text-lg font-bold">
                             Send message
                         </button>

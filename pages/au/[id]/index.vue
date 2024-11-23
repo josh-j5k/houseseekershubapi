@@ -14,7 +14,7 @@ const loading = ref(true)
 const { validation, formErrors } = useListingFormValidator()
 const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr, } = useFileUpload()
 
-const { handleRequest, btnLoading } = useAxios()
+const { handleRequest, btnLoading } = useBackend()
 
 const userListings = <Listings | undefined>useState('userListings').value
 if (userListings) {

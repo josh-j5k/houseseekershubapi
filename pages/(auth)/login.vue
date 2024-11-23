@@ -5,7 +5,7 @@ import axios from 'axios';
 definePageMeta({
     middleware: 'authenticated'
 })
-const { handleRequest, btnLoading } = useAxios()
+const { handleRequest, btnLoading } = useBackend()
 const loading = ref(false)
 const status = ref({
     error: false,
@@ -33,22 +33,28 @@ async function authenticateUser() {
 
     if (response.status == 200) {
         const decodedJwtResponse = parseJwt(response.data.id_token)
-
         form.email = decodedJwtResponse.email
         const { data, error } = await handleRequest('post', '/auth/socials', { name: decodedJwtResponse.name, avatar: decodedJwtResponse.picture, provider: 'Google', provider_id: decodedJwtResponse.sub, email: decodedJwtResponse.email, email_verified: decodedJwtResponse.email_verified })
-        if (!error) {
-            localStorage.removeItem('state')
-            localStorage.setItem('user', JSON.stringify(data.data))
-            useState('user', () => data.data)
-            navigateTo({ name: 'au-id', params: { id: data.data.user.ref } })
+        if (error) {
+            status.value.message = data.message
+            status.value.error = true
+            setTimeout(() => {
+                status.value.message = null
+                status.value.error = false
+            }, 4000);
+            return
         }
+        localStorage.removeItem('state')
+        localStorage.setItem('user', JSON.stringify(data.data))
+        useState('user', () => data.data)
+        navigateTo({ name: 'au-id', params: { id: data.data.user.ref } })
     }
 
 
 }
 
 if (import.meta.client) {
-    if (query.state == localStorage.getItem('state')) {
+    if (query.state && query.state === localStorage.getItem('state')) {
         loading.value = true
         authenticateUser()
 
@@ -59,7 +65,7 @@ if (import.meta.client) {
 
 const submit = async () => {
 
-    const { error, data } = await handleRequest('post', 'login', form)
+    const { error, data } = await handleRequest('post', '/login', form)
 
     if (error) {
         status.value.message = data.message
@@ -70,12 +76,12 @@ const submit = async () => {
         }, 4000);
         return
     }
-    console.log(data);
+
     localStorage.setItem('user', JSON.stringify({ access_token: data.access_token, user: data.user }))
     let auUser = { user: data.user, access_token: data.access_token }
-    const user = useState('user', () => auUser)
-    console.log(user.value)
-    navigateTo('/au/'.concat(data.user.ref))
+    useState('user', () => auUser)
+
+    navigateTo({ name: 'au-id', params: { id: data.user.ref } })
 }
 </script>
 
@@ -83,7 +89,7 @@ const submit = async () => {
 
 
 
-    <Head title="Log in" />
+    <Head title="Signin" />
 
     <!-- <ApplicationLogo class="w-16 absolute top-8 left-8" /> -->
     <div class="min-h-screen flex flex-col sm:justify-center items-center py-8 sm:pt-0 bg-gray-100 -sm:pt-24">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Listings, Listing } from '~/types/listings';
 
-const { handleRequest } = useAxios();
+const { handleRequest } = useBackend();
 const loading = ref(false)
 const listings = ref(<Listings>{})
 

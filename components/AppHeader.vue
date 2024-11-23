@@ -25,18 +25,7 @@ function closeDropdown(ev: MouseEvent) {
 
     }
 }
-async function logout() {
-    const { handleRequest } = useAxios()
-    const { error } = await handleRequest('post', '/logout')
 
-    const routes = ['index', 'listings', 'contact', 'about']
-    if (!error) {
-        navigateTo('/')
-    } else {
-        console.log(error);
-
-    }
-}
 
 onMounted(() => {
     document.documentElement.addEventListener('click', closeDropdown)
@@ -51,7 +40,7 @@ onUnmounted(() => {
 </script>
 <template>
     <header class="h-24 w-full flex flex-col z-[9990] justify-center lg:px-16 px-8 overflow-x-hidden"
-        :class="useRoute().name === 'index' ? 'absolute inset-0 bg-transparent text-white' : 'bg-white text-black relative shadow'">
+        :class="$route.name === 'index' ? 'absolute inset-0 bg-transparent text-white' : 'bg-white text-black relative shadow'">
         <div class=" lg:grid lg:grid-cols-[20%_80%] grid-cols-2 -lg:flex -lg:justify-between items-center">
             <h1>
                 House seekers hub
@@ -67,11 +56,11 @@ onUnmounted(() => {
                 class="flex lg:items-center lg:justify-between -lg:fixed inset-0 -lg:bg-white -lg:shadow  -lg:text-gray-800 transition-transform duration-500 -lg:flex-col -lg:p-4 -lg:translate-x-full">
                 <nav id="primary-nav">
                     <ul class="flex gap-4 h-full -lg:flex-col -lg:pt-16 -lg:px-8 text-sm -lg:text-xl -lg:font-bold">
-                        <li :class="[useRoute().name === 'index' && activeLinkClass]"
+                        <li :class="[$route.name === 'index' && activeLinkClass]"
                             class="hover:border-b-2 border-accent">
                             <NuxtLink to="/">Home</NuxtLink>
                         </li>
-                        <li :class="[useRoute().name === 'listings' && activeLinkClass]"
+                        <li :class="[$route.name === 'listings' && activeLinkClass]"
                             class="hover:border-b-2 border-accent">
                             <NuxtLink to="/listings">Listings</NuxtLink>
                         </li>
@@ -81,11 +70,11 @@ onUnmounted(() => {
                         <li class="hover:border-b-2 border-accent">
                             <NuxtLink to="#">Commercial</NuxtLink>
                         </li>
-                        <li :class="[useRoute().name === 'contact' && activeLinkClass]"
+                        <li :class="[$route.name === 'contact' && activeLinkClass]"
                             class="hover:border-b-2 border-accent">
                             <NuxtLink to="/contact">Contact Us</NuxtLink>
                         </li>
-                        <li :class="[useRoute().name === 'about' && activeLinkClass]"
+                        <li :class="[$route.name === 'about' && activeLinkClass]"
                             class="hover:border-b-2 border-accent">
                             <NuxtLink to="/about">About Us</NuxtLink>
                         </li>
@@ -177,14 +166,14 @@ onUnmounted(() => {
             </div>
         </div>
         <hr class="w-[80%] h-[1px] mx-auto bg-white opacity-20 mt-4 -lg:hidden"
-            :class="[useRoute().name === 'index' ? '' : 'hidden']">
+            :class="[$route.name === 'index' ? '' : 'hidden']">
     </header>
 
 
     <!-- Mobile hamburger menu -->
 
     <ClientOnly>
-        <HeaderHambugerMenu @logout="logout" :dropdown-toggled :user="user" />
+        <HeaderHambugerMenu :dropdown-toggled :user="user" />
     </ClientOnly>
 </template>
 

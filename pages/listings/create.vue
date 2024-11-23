@@ -8,6 +8,9 @@ const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, files
 const { formErrors, validation } = useListingFormValidator()
 
 const user = useState('user').value as user
+console.log(user);
+clearNuxtState('user')
+console.log(user);
 const form = reactive({
     title: '',
     property_status: 'rent',

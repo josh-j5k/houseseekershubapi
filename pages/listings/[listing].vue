@@ -13,7 +13,7 @@ useHead({
 
 const canMessageAndShare = ref(false)
 const loading = ref(true)
-const { handleRequest } = useAxios()
+const { handleRequest } = useBackend()
 const listing = ref(<Listing>{})
 
 const currentIndex = ref(0)
