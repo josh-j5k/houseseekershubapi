@@ -15,9 +15,10 @@ Route::prefix('listings')->group(function () {
 Route::post('/contact', [ContactController::class, 'store']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix("messages")->group(function () {
+        Route::get('/users', [MessageController::class, 'getUsers']);
         Route::get('/', [MessageController::class, 'index']);
         Route::get('/{message}', [MessageController::class, 'chats']);
-        Route::post('/message', [MessageController::class, 'store']);
+        Route::post('/', [MessageController::class, 'store']);
 
     });
     Route::prefix('listings')->group(function () {

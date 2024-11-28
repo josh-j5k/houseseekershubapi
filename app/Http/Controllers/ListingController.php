@@ -106,7 +106,7 @@ class ListingController extends Controller
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'All User\'s listings', ['listings' => $data, 'hasMorePages' => $hasMorePages], 200);
+        return $this->response('success', 'All User\'s listings', ['listings' => $data, 'hasMorePages' => $hasMorePages, 'user' => $user], 200);
 
     }
 
