@@ -10,7 +10,13 @@ export function useFileUpload() {
         total.value = fileInput.files.length
 
     }
+    function resetInput(fileInput: HTMLInputElement) {
+
+        fileInput.value = ''
+        filesArr.value.length = 0
+    }
     function assignFiles(fileInput: HTMLInputElement) {
+
         fileInput.addEventListener('change', (ev: Event) => {
             const inputTarget = ev.target as HTMLInputElement
             if (inputTarget.files !== null) {
@@ -23,6 +29,9 @@ export function useFileUpload() {
                     handleFiles(file)
                     filesArr.value = [...filesArr.value, file]
                 }
+                console.log(fileInput.value);
+                console.log(fileInput.files);
+
             }
             updateFilesDisplayImages(fileInput)
         })
@@ -76,7 +85,7 @@ export function useFileUpload() {
     }
 
     return {
-        drop, dragenter, dragover, deleteFile, assignFiles, total, imgSrc, filesArr,
+        drop, dragenter, dragover, deleteFile, assignFiles, total, imgSrc, filesArr, resetInput
     }
 
 
