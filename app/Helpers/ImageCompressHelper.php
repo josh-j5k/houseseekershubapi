@@ -11,15 +11,15 @@ class ImageCompressHelper
 
 
 
-        $dir = $file_folder ? "$folder/$subfolder/$file_folder" : $dir = "$folder/$subfolder";
+        $dir = $file_folder ? "images/$folder/$subfolder/$file_folder" : "images/$folder/$subfolder";
 
 
 
-        if (!is_dir($dir)) {
-            mkdir($dir, recursive: true);
+        if (!is_dir("$dir")) {
+            mkdir("$dir", recursive: true);
         }
         $imageType = getimagesize($original_image)['mime'];
-
+        $img = null;
         if ($imageType === 'image/png') {
             $img = imagecreatefrompng($original_image);
         } elseif ($imageType === 'image/jpeg') {
@@ -41,7 +41,7 @@ class ImageCompressHelper
         imagedestroy($img);
         imagedestroy($resized_img);
 
-        $url = "/$dir/$img_name";
+        $url = "$dir/$img_name";
         return $url;
     }
 }

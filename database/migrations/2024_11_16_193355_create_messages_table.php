@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->uuid('ref');
             $table->foreignId('senders_id')->constrained('users', 'id', 'message_users_senders_id')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('receivers_id')->constrained('users', 'id', 'message_users_receivers_id')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->text('message');
+            $table->text('message')->nullable();
             $table->boolean('seen')->default(0);
 
             $table->timestamps();

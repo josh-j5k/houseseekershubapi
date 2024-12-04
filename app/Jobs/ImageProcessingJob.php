@@ -16,7 +16,7 @@ class ImageProcessingJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public $model, public File $files)
+    public function __construct(public $model, public array $files, public string $description)
     {
 
     }
@@ -26,6 +26,7 @@ class ImageProcessingJob implements ShouldQueue
      */
     public function handle(): void
     {
+
         foreach ($this->files as $file_input) {
 
             $folder = date("Y");
@@ -33,7 +34,7 @@ class ImageProcessingJob implements ShouldQueue
 
             $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
 
-            $this->model->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
+            $this->model->uploads()->create(['url' => $url, 'description' => $this->description]);
         }
     }
 }

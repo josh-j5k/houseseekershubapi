@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Listing;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 
+use Illuminate\Http\Request;
+use Laravel\Sanctum\Sanctum;
 use App\Jobs\ImageProcessingJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -65,24 +67,37 @@ class ListingController extends Controller
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'All listings', ['listings' => $data, 'hasMorePages' => $hasMorePages], 200);
+        return $this->response('success', 'All listings', ['listings' => $data, 'hasMorePages' => $hasMorePages]);
     }
     /**
      * Get a listing of the resource.
      */
-    public function show($ref)
+    public function show(Request $request, $ref)
     {
         try {
+
             $listing = Listing::where('ref', $ref)->get();
             if (!$listing) {
                 throw new AuthorizationException();
             }
             $userRef = $listing[0]->user->ref;
             $data = ListingResource::collection($listing);
+            $model = Sanctum::$personalAccessTokenModel;
+
+            $accessToken = $model::findToken($request->bearerToken());
+            $payload = [
+                'listing' => $data[0],
+                't' => $accessToken
+            ];
+
+            if ($request->bearerToken()) {
+
+                $payload['canShare'] = $userRef;
+            }
         } catch (\Throwable $th) {
-            return $this->response('error', $th->getMessage(), statusCode: 406);
+            return $this->response('error', $th->getMessage(), $th->getTrace(), statusCode: 406);
         }
-        return $this->response('success', 'Listing', ['listing' => $data[0], 'canShare' => $userRef], 200);
+        return $this->response('success', 'Listing', $payload);
     }
     /**
      * Get User Listigs
@@ -90,6 +105,9 @@ class ListingController extends Controller
     public function userListings(Request $request)
     {
         try {
+            /**
+             * @var User
+             */
             $user = Auth::user();
 
             $limit = (int) $request->limit ?: 8;
@@ -106,7 +124,7 @@ class ListingController extends Controller
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'All User\'s listings', ['listings' => $data, 'hasMorePages' => $hasMorePages, 'user' => $user], 200);
+        return $this->response('success', 'All User\'s listings', ['listings' => $data, 'hasMorePages' => $hasMorePages, 'user' => $user]);
 
     }
 
@@ -176,7 +194,7 @@ class ListingController extends Controller
             DB::rollBack();
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'Listing updated successfully', statusCode: 200);
+        return $this->response('success', 'Listing updated successfully');
     }
 
     /**
@@ -196,7 +214,7 @@ class ListingController extends Controller
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'Listing deleted successfully', statusCode: 200);
+        return $this->response('success', 'Listing deleted successfully');
     }
 
 

@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Message;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Jobs\ImageProcessingJob;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ImageCompressHelper;
+use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\File;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
 
-    public function getUsers()
-    {
-        $users = User::all();
-        return $this->response('success', 'all users', $users, 200);
-    }
     public function index()
     {
         $user = Auth::user();
@@ -43,6 +42,7 @@ class MessageController extends Controller
                         'ref' => $recipient->ref
                     ],
                     'message' => $message->message,
+
                     'unread' => 0,
                     'time' => now()->toFormattedDateString() === $created_at->toFormattedDateString() ? substr(date("H:i:s", $created_at->getTimestamp()), 0, 5) : (now()->subDay()->toFormattedDateString() === $created_at->toFormattedDateString() ? 'Yesterday' : (now()->diffInDays($created_at->addDays(6)) > 0 ? $created_at->addDay()->dayName : $created_at->toDateString()))
 
@@ -51,7 +51,7 @@ class MessageController extends Controller
                 $recipientIdArr[] = $recipient->id;
             }
         });
-        return $this->response('success', 'all users', $messages, 200);
+        return $this->response('success', 'all users', $messages);
 
     }
     public function chats($ref)
@@ -65,24 +65,41 @@ class MessageController extends Controller
         $recipient = User::where('ref', $ref)->first();
         $messages['recipient'] = ['name' => $recipient->name, 'avatar' => $recipient->avatar, 'ref' => $recipient->ref];
         Message::orderBy('created_at', 'asc')->where([['senders_id', $user->id], ['receivers_id', $recipient->id]])->orWhere([['receivers_id', $user->id], ['senders_id', $recipient->id]])->each(function ($message) use (&$messages, $user, $recipient) {
+
             $created_at = new Carbon($message->created_at);
+
             $date = now()->toFormattedDateString() === $created_at->toFormattedDateString() ? "Today" : (now()->subDay()->toFormattedDateString() === $created_at->toFormattedDateString() ? 'Yesterday' : (now()->diffInDays($created_at->addDays(6)) > 0 ? $created_at->addDay()->dayName : $created_at->toFormattedDateString()));
+
             $messages['messages'][$date][] = [
                 'date' => $date,
                 'content' => [
                     'message' => $message->message,
                     'from' => $message->senders_id === $user->id ? $user->ref : $recipient->ref,
-                    'time' => date("H:i:s", $created_at->getTimestamp())
+                    'time' => substr(date("H:i:s", $created_at->getTimestamp()), 0, 5),
+                    'message_pictures' => $message->uploads()->count() > 0 ? [
+                        'url' => config('app.filesystem_disk') == 'local' ?
+                            config('app.url') . "/" . $message->uploads()->value('url') : ''
+
+                    ] : null
                 ]
             ];
         });
-        return $this->response('success', 'all chats', $messages, 200);
+        return $this->response('success', 'all chats', $messages);
 
     }
     public function store(Request $request)
     {
+        $request->validate([
+            'message' => ['sometimes', 'string'],
+            'receivers_ref' => ['required', 'string'],
+            'message_pictures' => ['sometimes', 'array', "reqiured"],
+            'message_pictures.*' => [File::types(['jpg', 'webp', 'png'])]
+        ]);
 
         try {
+            if (empty($request->message && empty($request->message_pictures))) {
+                throw new Exception('can\'t send an empty message');
+            }
             DB::beginTransaction();
             $user = Auth::user();
             $receivers_id = User::where('ref', $request->receivers_ref)->value('id');
@@ -93,7 +110,15 @@ class MessageController extends Controller
                 'ref' => Str::uuid()
             ]);
             if ($request->hasFile('message_pictures')) {
-                ImageProcessingJob::dispatch($message, 'message_pictures')->onQueue('high');
+                foreach ($request->message_pictures as $file_input) {
+
+                    $folder = date("Y");
+                    $subFolders = date("m");
+
+                    $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
+
+                    $message->uploads()->create(['url' => $url, 'description' => 'message picture']);
+                }
             }
             $created_at = new Carbon($message->created_at);
 
