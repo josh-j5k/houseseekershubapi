@@ -6,13 +6,14 @@ import { type Listings } from '@/types/listings'
 
 // const { usePlaces, inputValue } = useGoogleMaps()s
 
-const { loading, listings, init, removeFilter } = useListing()
+const { loading, listings, init, removeFilter, loadMore } = useListing()
 const storeListings = useState('listings').value as Listings | undefined
 
+const page = ref(1)
 const per_page = ref('16')
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
-
+const loadmore = ref(false)
 const filter = computed(() => {
     let arr = <string[]>[]
     for (const key in useRoute().query) {
@@ -27,7 +28,30 @@ const filter = computed(() => {
     return arr
 })
 
-storeListings == undefined ? init() : ''
+storeListings == undefined ? init() : listings.value = storeListings
+
+onMounted(() => {
+    const target = document.getElementById("loadmore")!;
+    const options = {
+        rootMargin: "0px",
+        threshold: 1.0,
+    };
+    async function moreListing() {
+        loadmore.value = true
+        await loadMore(page.value.toString())
+        loadmore.value = false
+    }
+    const observer = new IntersectionObserver(function (e) {
+        const intersection = e[0]
+
+        if (intersection.isIntersecting && (listings.value.hasMorePages || storeListings?.hasMorePages)) {
+            page.value++
+            moreListing()
+        }
+
+    }, options);
+    observer.observe(target)
+})
 </script>
 
 <template>
@@ -126,8 +150,7 @@ storeListings == undefined ? init() : ''
                         </div>
                     </template>
                     <template v-else>
-                        <template
-                            v-if="storeListings != undefined ? storeListings.data.length > 0 : listings.data.length > 0">
+                        <template v-if="listings.data.length > 0">
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
                                 <template v-for="(listing) in listings.data">
@@ -186,7 +209,17 @@ storeListings == undefined ? init() : ''
                                         </Card>
                                     </NuxtLink>
                                 </template>
+                                <template v-if="loadmore" v-for="_ in 24">
+                                    <Card class="flex flex-col gap-2">
+                                        <Skeleton class="aspect-square w-full" />
+                                        <Skeleton class=" h-8 w-full" />
+                                        <Skeleton class=" h-4 w-3/4" />
+                                        <Skeleton class=" h-8 w-full" />
+                                        <Skeleton class=" h-6 w-full" />
+                                    </Card>
+                                </template>
                             </div>
+
                         </template>
                         <template v-else>
                             <div class="flex flex-col gap-3 justify-center items-center mt-16 w-[90%] mx-auto">
@@ -208,6 +241,8 @@ storeListings == undefined ? init() : ''
                 </div>
 
             </div>
+        </div>
+        <div id="loadmore">
         </div>
     </section>
 

@@ -16,8 +16,5 @@ export default function () {
     for (const [key, value] of Object.entries(params)) {
         url.searchParams.append(key, value)
     }
-
-    // console.log(params);
-
     open(url)
 }

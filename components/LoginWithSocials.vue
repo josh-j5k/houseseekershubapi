@@ -3,9 +3,7 @@ defineProps<{
     google_name: string,
     loading?: boolean
 }>()
-function handleOpen() {
-    open('/auth/google/callback')
-}
+
 </script>
 
 <template>

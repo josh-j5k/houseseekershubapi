@@ -13,7 +13,7 @@ useHead({
 })
 const messageInput = ref('')
 const bookmark = ref(false)
-const canMessageAndShare = ref(<string | null>null)
+const authorized = ref(<string | null>null)
 const loading = ref(true)
 const { handleRequest } = useBackend()
 const { assignFiles, imgSrc } = useFileUpload()
@@ -40,13 +40,17 @@ function prevPic() {
         if (import.meta.client) {
             const user = JSON.parse(localStorage.getItem('user')!) as user | undefined
             if (user) {
-                user.user.ref !== data.data.canShare ? canMessageAndShare.value = data.data.canShare : ''
+                user.user.ref !== data.data.canShare ? authorized.value = data.data.canShare : ''
 
             }
         }
     }
     loading.value = false
 })()
+function share() {
+    navigator.clipboard.writeText(location.href)
+    toastNotification('Success', 'Linked copied to clipboard')
+}
 // Send a message
 async function sendMessage() {
     const form = <HTMLFormElement>document.getElementById('form')
@@ -68,7 +72,7 @@ async function sendMessage() {
     }
     imgSrc.value.length = 0
 
-    const payload = <{ message: string, receivers_ref: string, message_pictures: any | undefined }>{ message: value, receivers_ref: canMessageAndShare.value! }
+    const payload = <{ message: string, receivers_ref: string, message_pictures: any | undefined }>{ message: value, receivers_ref: authorized.value! }
     if (file != null) {
         payload.message_pictures = file
     }
@@ -82,8 +86,9 @@ if (import.meta.client) {
 // Fetch chat messages
 async function getChats() {
     showMessage.value = true
+
     if (chats.value == null) {
-        const { data, error } = await handleRequest('get', '/messages/'.concat(canMessageAndShare.value!))
+        const { data, error } = await handleRequest('get', '/messages/'.concat(authorized.value!))
         if (!error) {
 
             chats.value = data.data
@@ -97,6 +102,7 @@ async function getChats() {
         }
         chatLoading.value = false
     }
+    document.documentElement.style.overflow = 'clip'
 }
 function uploadPicture() {
     const input = document.querySelector('#file_upload') as HTMLInputElement
@@ -113,6 +119,10 @@ async function setBookmark() {
         }
         bookmark.value = !bookmark.value
     }
+}
+function closeMessageBox() {
+    document.documentElement.style.overflow = 'auto'
+    showMessage.value = false
 }
 function nextPic() {
     currentIndex.value++
@@ -191,58 +201,41 @@ function nextPic() {
                                 {{ listing.propertyStatus }}
                             </span>
                         </p>
-                        <ClientOnly>
-                            <div class="flex gap-4 relative">
-                                <template v-if="canMessageAndShare">
-                                    <button @mousedown="onMouseDown" @mouseup="onMouseUp" @click="getChats"
-                                        type="button" title="message"
-                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                        <span>
-                                            <i class="fa-regular fa-comments"></i>
-                                        </span>
-                                        <span class="capitalize">
-                                            message
-                                        </span>
-                                    </button>
-                                    <button @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark"
-                                        type="button" title="bookmark"
-                                        class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg">
-                                        <span v-if="bookmark">
-                                            <i class="fa-solid fa-bookmark text-blue-300"></i>
-                                        </span>
-                                        <span v-else>
-                                            <i class="fa-regular fa-bookmark text-white"></i>
-                                        </span>
 
-                                    </button>
-                                </template>
-                                <button @mousedown="onMouseDown" @mouseup="onMouseUp" type="button" title="share"
-                                    class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                    <span>
-                                        <i class="fa-solid fa-share"></i>
-                                    </span>
-                                </button>
+                        <div class="flex gap-4 relative">
 
-                            </div>
+                            <button :disabled="authorized == null || authorized === authUser?.user.ref"
+                                @mousedown="onMouseDown" @mouseup="onMouseUp" @click="getChats" type="button"
+                                title="message" class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg"
+                                :class="[authorized == null || authorized === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
+                                <span>
+                                    <i class="fa-regular fa-comments"></i>
+                                </span>
+                                <span class="capitalize">
+                                    message
+                                </span>
+                            </button>
+                            <button :disabled="authorized == null || authorized === authUser?.user.ref"
+                                @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark" type="button"
+                                title="bookmark" class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg"
+                                :class="[authorized == null || authorized === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
+                                <span v-if="bookmark">
+                                    <i class="fa-solid fa-bookmark text-blue-300"></i>
+                                </span>
+                                <span v-else>
+                                    <i class="fa-regular fa-bookmark text-white"></i>
+                                </span>
 
-                            <template #fallback>
-                                <div class="flex gap-4">
-                                    <button type="button" title="share"
-                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                        <span>
-                                            <i class="fa-solid fa-share"></i>
-                                        </span>
-                                    </button>
-                                    <button type="button" title="share"
-                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                        <span>
-                                            <i class="fa-solid fa-ellipsis"></i>
-                                        </span>
-                                    </button>
-                                </div>
-                            </template>
+                            </button>
 
-                        </ClientOnly>
+                            <button @click="share" @mousedown="onMouseDown" @mouseup="onMouseUp" type="button"
+                                title="share" class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
+                                <span>
+                                    <i class="fa-solid fa-share"></i>
+                                </span>
+                            </button>
+
+                        </div>
                     </div>
                     <hr class="w-full bg-slate-300 my-4">
                     <div class="pb-4">
@@ -257,7 +250,7 @@ function nextPic() {
 
                     <!-- message box -->
                     <div v-if="showMessage"
-                        class="w-full shadow-xl min-h-[75%] bg-blue-100 z-30 absolute bottom-0 left-0 transition-transform duration-300 ease-in"
+                        class="w-full shadow-xl min-h-[75%] -md:h-screen bg-blue-100 z-30 absolute -md:fixed bottom-0 left-0 transition-transform duration-300 ease-in"
                         :class="[showMessage ? 'translate-y-0' : 'translate-y-full']">
                         <template v-if="chatLoading">
                             <div class="flex justify-center -md:h-screen bg-blue-100 pt-20">
@@ -266,7 +259,7 @@ function nextPic() {
                         </template>
                         <template v-else>
                             <div class="flex px-4 h-16 bg-accent gap-4 items-center">
-                                <button class="text-white" @click="showMessage = false">
+                                <button class="text-white" @click="closeMessageBox">
                                     <i class="fa-solid fa-arrow-left text-lg font-bold"> </i>
                                 </button>
                                 <div class="flex gap-2 items-center">

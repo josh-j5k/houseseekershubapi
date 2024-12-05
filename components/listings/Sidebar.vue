@@ -11,7 +11,7 @@ const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 
 
 async function autocompleteLocation() {
-    if (location.value) {
+    if (location.value && location.value.length > 0) {
         await handleRequest(location.value)
 
     }

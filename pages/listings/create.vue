@@ -6,7 +6,7 @@ import toast from '~/utils/toastNotification';
 
 const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, filesArr } = useFileUpload()
 const { formErrors, validation } = useListingFormValidator()
-
+const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 const user = useState('user').value as user
 
 const form = reactive({
@@ -28,6 +28,16 @@ function fileUpload(e: MouseEvent) {
     const input = dropbox.querySelector('#file_upload') as HTMLInputElement
     input.click()
 
+}
+async function autocompleteLocation() {
+    if (form.location.length > 0) {
+        await handleRequest(form.location)
+
+    }
+}
+function setLocation(e: string) {
+    form.location = e
+    closeSuggestion()
 }
 function setToPascalCase() {
     form.title = form.title.trim().split(' ').map(item => item.charAt(0).toUpperCase().concat(item.substring(1))).join(' ')
@@ -184,9 +194,15 @@ onUnmounted(() => {
                     <div class="flex flex-col">
                         <label for="property_location" class="capitalize font-bold text-lg mb-3">property
                             location</label>
-                        <input v-model="form.location" type="text" name="location location" id="property_location"
-                            placeholder="Enter the property location" class="input"
-                            :class="[formErrors.locationError ? 'border-red-500' : '']">
+                        <div class="w-full relative">
+                            <input @change="autocompleteLocation" v-model="form.location" type="text"
+                                name="location location" id="property_location"
+                                placeholder="Enter the property location" class="input"
+                                :class="[formErrors.locationError ? 'border-red-500' : '']">
+                            <template v-if="suggestions.length > 0">
+                                <ListingsLocationSuggestions @set-location="setLocation" />
+                            </template>
+                        </div>
                     </div>
                     <p v-if="formErrors.locationError" class="text-red-500">
                         Please enter a valid location.

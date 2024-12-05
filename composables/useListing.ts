@@ -33,6 +33,37 @@ async function getListings(query: any) {
     }
     loading.value = false
 }
+function decodeQuery() {
+    const query = useRoute().query
+    const decodedQuery = <LocationQuery>{}
+
+    for (const key in query) {
+        const value = query[key]
+        const decoded = decodeURIComponent(value?.toString()!)
+        decodedQuery[key] = decoded
+        if (key == 'status') {
+            status.value = decoded
+        }
+        if (key == 'location') {
+            location.value = decoded
+        }
+        if (key == 'price') {
+            const arr = decoded.split('|')
+            arr?.forEach(item => {
+                if (item.startsWith('over')) {
+                    price.value.min = item.substring(4)
+                } else {
+                    price.value.max = item.substring(4)
+                }
+            })
+        }
+        if (key == 'property_type') {
+            propertyType.value = decoded.split('|')!
+        }
+    }
+    decodedQuery['limit'] = perPage.value
+    return decodedQuery
+}
 async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
     const encoded = encodeURIComponent(value?.toString()!)
     const query = useRoute().query
@@ -54,36 +85,18 @@ async function submit(name: string, value: LocationQueryValue | LocationQueryVal
 
 
 export function useListing() {
+    async function loadMore(page: string) {
 
-    function init() {
-        const query = useRoute().query
-        const decodedQuery = <LocationQuery>{}
-
-        for (const key in query) {
-            const value = query[key]
-            const decoded = decodeURIComponent(value?.toString()!)
-            decodedQuery[key] = decoded
-            if (key == 'status') {
-                status.value = decoded
-            }
-            if (key == 'location') {
-                location.value = decoded
-            }
-            if (key == 'price') {
-                const arr = decoded.split('|')
-                arr?.forEach(item => {
-                    if (item.startsWith('over')) {
-                        price.value.min = item.substring(4)
-                    } else {
-                        price.value.max = item.substring(4)
-                    }
-                })
-            }
-            if (key == 'property_type') {
-                propertyType.value = decoded.split('|')!
-            }
+        const decodedQuery = decodeQuery()
+        decodedQuery['page'] = page
+        const { data, error } = await handleRequest('get', '/listings', decodedQuery)
+        if (!error) {
+            listings.value.data = [...listings.value.data, ...data.data.listings]
+            listings.value.hasMorePages = data.data.hasMorePages
         }
-        decodedQuery['limit'] = perPage.value
+    }
+    function init() {
+        const decodedQuery = decodeQuery()
         getListings(decodedQuery)
     }
     function statusSubmit() {
@@ -206,6 +219,7 @@ export function useListing() {
         priceSubmit, propertySubmit,
         locationSubmit,
         removeFilter,
-        init
+        init,
+        loadMore
     }
 }

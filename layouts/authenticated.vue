@@ -108,9 +108,9 @@ onUnmounted(() => {
                             </div>
                             <div class="flex gap-2 items-center">
                                 <button type="button" title="New listing" @click=" $router.push('/listings/create')"
-                                    class="text-white hover:bg-accent-hover bg-accent flex items-center justify-center gap-2 h-8 w-28 -md:w-6 -md:aspect-square -md:h-6 -md:rounded-full rounded-md text-sm ">
+                                    class="text-white -md:text-accent -md:text-2xl md:hover:bg-accent-hover md:bg-accent flex items-center justify-center gap-2 h-8 w-28 -md:w-6 -md:aspect-square -md:h-6 -md:rounded-full rounded-md text-sm ">
                                     <span class="-md:w-full -md:h-full -md:flex -md:items-center -md:justify-center">
-                                        <i class="fas fa-circle-plus aspect-square"></i>
+                                        <i class="fas fa-circle-plus aspect-square "></i>
                                     </span>
                                     <span class="capitalize -md:hidden">
                                         new listing

@@ -1,3 +1,5 @@
+import type { form } from "~/types/listings"
+
 export function useListingFormValidator() {
     const formErrors = ref(
         {
@@ -21,29 +23,29 @@ export function useListingFormValidator() {
         property_type: false
     }
 
-    function validation(title: string, description: string, property_type: string, price: string | number, property_status: string, location: string, total: number): boolean {
-        const strPrice = price.toString()
-        if (title === '') {
+    function validation(form: any, total: number): boolean {
+        const strPrice = form.price.toString()
+        if (form.title === '') {
             formErrors.value.titleError = true
         } else {
             valid.title = true
         }
-        if (description === '') {
+        if (form.description === '') {
             formErrors.value.descriptionError = true
         } else {
             valid.description = true
         }
-        if (property_type === '') {
+        if (form.property_type === '') {
             formErrors.value.propertyTypeError = true
         } else {
             valid.property_type = true
         }
-        if (location === '') {
+        if (form.location === '') {
             formErrors.value.locationError = true
         } else {
             valid.location = true
         }
-        if (property_status === '') {
+        if (form.property_status === '') {
             formErrors.value.propertyStatusError = true
         } else {
             valid.property_status = true

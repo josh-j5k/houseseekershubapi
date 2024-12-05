@@ -12,7 +12,7 @@ const listings = ref(<Listings>{})
 const currentIndex = ref(0)
 const loading = ref(true)
 const { validation, formErrors } = useListingFormValidator()
-const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr, } = useFileUpload()
+const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr } = useFileUpload()
 
 const { handleRequest, btnLoading } = useBackend()
 
@@ -23,7 +23,7 @@ if (userListings) {
 }
 
 
-const form = reactive({
+const form = ref({
     title: '',
     description: '',
     price: <string | number>'',
@@ -33,6 +33,16 @@ const form = reactive({
     deletedImages: <string[]>[],
     inputFiles: <File[]>[]
 })
+const initialFormValue = {
+    title: '',
+    description: '',
+    price: <string | number>'',
+    location: '',
+    property_status: '',
+    property_type: '',
+    deletedImages: <string[]>[],
+    inputFiles: <File[]>[]
+}
 
 const mainImage = ref(0)
 
@@ -70,15 +80,14 @@ if (userListings == undefined) {
 function showEditModal() {
     show.value = false
     show_edit_modal.value = true
-    form.title = listings.value.data[currentIndex.value].title
-    form.location = listings.value.data[currentIndex.value].location
-    form.price = listings.value.data[currentIndex.value].price
-    form.description = listings.value.data[currentIndex.value].description
-    form.property_status = listings.value.data[currentIndex.value].propertyStatus
-    form.property_type = listings.value.data[currentIndex.value].propertyType
+    form.value.title = listings.value.data[currentIndex.value].title
+    form.value.location = listings.value.data[currentIndex.value].location
+    form.value.price = listings.value.data[currentIndex.value].price
+    form.value.description = listings.value.data[currentIndex.value].description
+    form.value.property_status = listings.value.data[currentIndex.value].propertyStatus
+    form.value.property_type = listings.value.data[currentIndex.value].propertyType
     setTimeout(() => {
-        const locationInput = document.getElementById('property_location') as HTMLInputElement
-        // usePlaces(locationInput, locationInput.value)
+
         function dropEnter(ev: any) {
             drop(ev, file_upload)
         }
@@ -108,32 +117,33 @@ function removePhoto(ev: MouseEvent) {
 function deletePhoto(ev: MouseEvent) {
     const btn = ev.currentTarget as HTMLButtonElement
     const btnIndex = parseInt(btn.value)
-    form.deletedImages.push(listings.value.data[currentIndex.value].images[btnIndex])
+    form.value.deletedImages.push(listings.value.data[currentIndex.value].images[btnIndex])
     listings.value.data[currentIndex.value].images.splice(btnIndex, 1)
 }
 
-function submit() {
+async function submit() {
     if (filesArr.value.length > 0) {
-        form.inputFiles = filesArr.value
+        form.value.inputFiles = filesArr.value
     }
-    if (validation(form.title, form.description, form.property_type, form.price, form.property_status, form.location, total.value)) {
-        // form.post(route('listings.update', listings.data[currentIndex.value].id), {
-        //     onSuccess: () => {
-        //         const file_upload = document.getElementById('file_upload') as HTMLInputElement
-        //         show_edit_modal.value = false
-        //         toast('Success', 'Listing was updated successfully!')
-        //         form.reset('description', 'inputFiles', 'location', 'price', 'property_status', 'property_type', 'title')
-        //         const newDt = new DataTransfer()
-        //         file_upload.files = newDt.files
-        //         imgSrc.value = []
-        //         filesArr.value = <File[]>[]
-        //     }
-        // })
+    if (validation(form.value, total.value)) {
+        const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.data[currentIndex.value].id, form.value, 'multpartForm')
+        if (!error) {
+            toastNotification('Success', data.message)
+            show_edit_modal.value = false
+            form.value = initialFormValue
+            filesArr.value.length = 0
+            imgSrc.value = []
+
+        }
+        else {
+            toastNotification('Error', data.message)
+        }
     }
+
 }
 
 async function deleteConfirmed() {
-    const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.data[currentIndex.value].ref))
+    const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.data[currentIndex.value].id))
     if (!error) {
         toast('Success', 'Listing was deleted successfully!')
     } else {
@@ -153,7 +163,7 @@ onMounted(() => {
 
     <Head title="Dashboard" />
     <template v-if="loading">
-        <div class="flex flex-col justify-center items-center h-screen">
+        <div class="flex flex-col justify-center items-center h-72">
             <Spinner class="text-4xl" />
         </div>
     </template>
