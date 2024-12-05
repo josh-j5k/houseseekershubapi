@@ -8,9 +8,7 @@ const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, files
 const { formErrors, validation } = useListingFormValidator()
 
 const user = useState('user').value as user
-console.log(user);
-clearNuxtState('user')
-console.log(user);
+
 const form = reactive({
     title: '',
     property_status: 'rent',
@@ -93,7 +91,7 @@ onMounted(() => {
     const dropbox = document.getElementById('dropbox') as HTMLDivElement
     const file_upload = document.getElementById('file_upload') as HTMLInputElement
 
-    assignFiles(file_upload,)
+    assignFiles(file_upload)
     dropbox.addEventListener("dragenter", dragenter, false);
     dropbox.addEventListener("dragover", dragover, false);
     dropbox.addEventListener("drop", dropEnter, false);
@@ -118,7 +116,7 @@ onUnmounted(() => {
     <!-- <Preloader /> -->
 
     <section
-        class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center p-8 pt-0 gap-4">
+        class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center pt-0 gap-4">
         <div
             class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-16 lg:pt-28">
             <form @submit.prevent="submit" enctype="multipart/form-data">

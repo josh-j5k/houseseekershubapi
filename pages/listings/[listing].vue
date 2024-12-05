@@ -5,18 +5,24 @@ definePageMeta({
     layout: 'full-page'
 })
 
+const showMessage = ref(false)
 const pageTitle = ref()
 
 useHead({
     title: pageTitle.value
 })
-
-const canMessageAndShare = ref(false)
+const messageInput = ref('')
+const bookmark = ref(false)
+const canMessageAndShare = ref(<string | null>null)
 const loading = ref(true)
 const { handleRequest } = useBackend()
+const { assignFiles, imgSrc } = useFileUpload()
 const listing = ref(<Listing>{})
-
+const chatLoading = ref(true)
 const currentIndex = ref(0)
+const chats = ref(<null | any>null)
+const authUser = ref(<user | undefined>undefined)
+
 function prevPic() {
     currentIndex.value--
     if (currentIndex.value < 0) {
@@ -29,19 +35,85 @@ function prevPic() {
     const { data, error } = await handleRequest('get', '/listings/'.concat(useRoute().params.listing.toString()))
     if (!error) {
         listing.value = data.data.listing
+        bookmark.value = data.data.bookmark
         pageTitle.value = listing.value.title
         if (import.meta.client) {
             const user = JSON.parse(localStorage.getItem('user')!) as user | undefined
             if (user) {
-
-                user.user.ref !== data.data.canShare ? canMessageAndShare.value = true : ''
+                user.user.ref !== data.data.canShare ? canMessageAndShare.value = data.data.canShare : ''
 
             }
         }
     }
     loading.value = false
 })()
+// Send a message
+async function sendMessage() {
+    const form = <HTMLFormElement>document.getElementById('form')
+    const formData = new FormData(form)
+    const file = formData.getAll('file_upload')
 
+    if (messageInput.value.length == 0 && file.length == 0) {
+        return
+    }
+    const value = messageInput.value
+    messageInput.value = ''
+    const params = { date: 'Today', content: <{ message: string, from: string, message_pictures: { url: string } | null }>{ message: value, from: authUser.value?.user.ref, message_pictures: imgSrc.value.length > 0 ? { url: imgSrc.value[0] } : null } }
+
+    if (chats.value.messages['Today']) {
+        chats.value.messages["Today"] = [...chats.value.messages["Today"], params]
+    }
+    else {
+        chats.value.messages["Today"] = [params]
+    }
+    imgSrc.value.length = 0
+
+    const payload = <{ message: string, receivers_ref: string, message_pictures: any | undefined }>{ message: value, receivers_ref: canMessageAndShare.value! }
+    if (file != null) {
+        payload.message_pictures = file
+    }
+    const { data, error } = await handleRequest('post', '/messages', payload, 'multpartForm')
+    chats.value.messages["Today"].at(-1).content.time = data.data
+
+}
+if (import.meta.client) {
+    authUser.value = JSON.parse(localStorage.getItem('user')!)
+}
+// Fetch chat messages
+async function getChats() {
+    showMessage.value = true
+    if (chats.value == null) {
+        const { data, error } = await handleRequest('get', '/messages/'.concat(canMessageAndShare.value!))
+        if (!error) {
+
+            chats.value = data.data
+            setTimeout(() => {
+                const chatArea = document.getElementById('chat_area') as HTMLDivElement
+                chatArea.scrollTop = chatArea.scrollHeight
+                const input = document.querySelector('#file_upload') as HTMLInputElement
+                assignFiles(input)
+            }, 1);
+
+        }
+        chatLoading.value = false
+    }
+}
+function uploadPicture() {
+    const input = document.querySelector('#file_upload') as HTMLInputElement
+    input.click()
+}
+async function setBookmark() {
+    const { error } = await handleRequest('post', '/bookmark/' + listing.value.id)
+    if (!error) {
+
+        if (bookmark.value) {
+            toastNotification('Success', 'Bookmark removed')
+        } else {
+            toastNotification('Success', 'Bookmark added')
+        }
+        bookmark.value = !bookmark.value
+    }
+}
 function nextPic() {
     currentIndex.value++
     if (currentIndex.value > listing.value.images?.length - 1) {
@@ -97,7 +169,7 @@ function nextPic() {
                         </template>
                     </div>
                 </div>
-                <div class="bg-white py-12 px-8 shadow md:h-screen overflow-y-auto">
+                <div class="bg-white py-12 px-8 shadow md:h-screen overflow-y-auto relative">
                     <div>
                         <h1 class="capitalize font-bold text-3xl mb-3">
                             {{ listing.title }}
@@ -120,9 +192,10 @@ function nextPic() {
                             </span>
                         </p>
                         <ClientOnly>
-                            <div class="flex gap-4">
+                            <div class="flex gap-4 relative">
                                 <template v-if="canMessageAndShare">
-                                    <button type="button" title="message"
+                                    <button @mousedown="onMouseDown" @mouseup="onMouseUp" @click="getChats"
+                                        type="button" title="message"
                                         class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
                                         <span>
                                             <i class="fa-regular fa-comments"></i>
@@ -131,25 +204,25 @@ function nextPic() {
                                             message
                                         </span>
                                     </button>
-                                    <button type="button" title="like"
-                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                        <span>
-                                            <i class="fa-regular fa-heart"></i>
+                                    <button @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark"
+                                        type="button" title="bookmark"
+                                        class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg">
+                                        <span v-if="bookmark">
+                                            <i class="fa-solid fa-bookmark text-blue-300"></i>
                                         </span>
+                                        <span v-else>
+                                            <i class="fa-regular fa-bookmark text-white"></i>
+                                        </span>
+
                                     </button>
                                 </template>
-                                <button type="button" title="share"
+                                <button @mousedown="onMouseDown" @mouseup="onMouseUp" type="button" title="share"
                                     class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
                                     <span>
                                         <i class="fa-solid fa-share"></i>
                                     </span>
                                 </button>
-                                <button type="button" title="share"
-                                    class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
-                                    <span>
-                                        <i class="fa-solid fa-ellipsis"></i>
-                                    </span>
-                                </button>
+
                             </div>
 
                             <template #fallback>
@@ -181,6 +254,124 @@ function nextPic() {
                         Description
                     </h2>
                     <p>{{ listing.description }}</p>
+
+                    <!-- message box -->
+                    <div v-if="showMessage"
+                        class="w-full shadow-xl min-h-[75%] bg-blue-100 z-30 absolute bottom-0 left-0 transition-transform duration-300 ease-in"
+                        :class="[showMessage ? 'translate-y-0' : 'translate-y-full']">
+                        <template v-if="chatLoading">
+                            <div class="flex justify-center -md:h-screen bg-blue-100 pt-20">
+                                <Spinner class="text-4xl" />
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="flex px-4 h-16 bg-accent gap-4 items-center">
+                                <button class="text-white" @click="showMessage = false">
+                                    <i class="fa-solid fa-arrow-left text-lg font-bold"> </i>
+                                </button>
+                                <div class="flex gap-2 items-center">
+                                    <span v-if="chats.recipient.avatar == null"
+                                        class="capitalize text-2xl flex justify-center items-center bg-orange-500 text-white h-8 w-8 border rounded-full">
+                                        {{ chats.recipient.name.charAt(0) }}
+                                    </span>
+                                    <span v-else
+                                        class="flex justify-center items-center text-white h-10 w-10 aspect-square border rounded-full">
+                                        <img class="h-full w-full rounded-full aspect-square"
+                                            :src="chats.recipient.avatar" alt="picture">
+                                    </span>
+                                    <div class="flex flex-col">
+                                        <span class="capitalize text-white">
+                                            {{ chats.recipient.name }}
+                                        </span>
+                                        <span class="text-[12px] -mt-1 text-gray-300">
+                                            Offline
+                                        </span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <!-- chat area -->
+                            <div id="chat_area" class="h-[calc(100%-75px)] p-4 pb-8 -md:pb-24 w-full overflow-y-auto">
+                                <template v-for="key in Object.keys(chats.messages)">
+                                    <div>
+                                        <div class="flex justify-center py-3">
+                                            <span
+                                                class="font-bold cursor-default bg-blue-900/30 px-3 py-0.5 rounded-lg">
+                                                {{ chats.messages[key][0].date }}
+                                            </span>
+                                        </div>
+                                        <ul>
+                                            <template v-for="chat in chats.messages[key]">
+                                                <li class="rounded flex mb-1 w-full"
+                                                    :class="chat.content.from === authUser?.user.ref ? ' justify-end' : 'justify-start'">
+                                                    <span v-if="chat.content.time"
+                                                        class="w-fit p-2 rounded-[10px] relative flex flex-col"
+                                                        :class="chat.content.from === authUser?.user.ref ? ' bg-blue-600 text-white rounded-br-none' : 'bg-white rounded-bl-none'">
+                                                        <img class="w-52" v-if="chat.content.message_pictures"
+                                                            :src="chat.content.message_pictures.url" alt="">
+                                                        {{ chat.content.message }}
+                                                        <span class="text-[12px] text-right"
+                                                            :class="chat.content.from === authUser?.user.ref ? ' text-blue-100' : 'text-gray-500'">
+                                                            {{ chat.content.time }}
+                                                            <span v-if="chat.content.from === authUser?.user.ref">
+                                                                <i class="fa-solid fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                    <span v-else
+                                                        class="w-fit p-2 rounded-[10px] relative flex flex-col bg-blue-600 text-white rounded-br-none ">
+                                                        <img class="w-52" v-if="chat.content.message_pictures"
+                                                            :src="chat.content.message_pictures.url" alt="">
+                                                        {{ chat.content.message }}
+
+                                                    </span>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+
+                                </template>
+
+                            </div>
+                            <!-- input field -->
+                            <div class="bg-white w-full flex justify-center items-center absolute p-4 bottom-0 h-20">
+                                <template v-if="imgSrc.length > 0">
+                                    <div class="absolute bottom-16 right-8">
+                                        <img :src="imgSrc[0]" alt="" class="w-64 aspect-auto object-cover rounded">
+
+                                    </div>
+                                </template>
+
+                                <div class="h-full w-full flex gap-4 items-center rounded-3xl px-8 bg-gray-100">
+                                    <button @mousedown="onMouseDown" @mouseup="onMouseUp">
+                                        <i class="fas fa-microphone text-gray-700"></i>
+                                    </button>
+                                    <form class="w-full" name="form" id="form">
+                                        <input v-model="messageInput" type="text"
+                                            :placeholder="imgSrc.length > 0 ? 'Add a caption' : 'Type a message'"
+                                            name="message" id="message"
+                                            class="bg-transparent border-none focus-visible:outline-none caret-blue-600 flex-1 placeholder:text-sm w-full">
+                                        <input multiple type="file" class="hidden" name="file_upload"
+                                            accept=".jpg, .jpeg, .png, .webp" id="file_upload">
+                                    </form>
+                                    <div class="flex gap-4 text-gray-600 items-center">
+                                        <button @mousedown="onMouseDown" @mouseup="onMouseUp" type="button"
+                                            @click="uploadPicture">
+                                            <i class="fa-regular fa-image"></i>
+                                        </button>
+                                        <button @mousedown="onMouseDown" @mouseup="onMouseUp" type="button"> <i
+                                                class="fa-regular fa-face-smile"></i>
+                                        </button>
+                                        <button @mousedown="onMouseDown" @mouseup="onMouseUp" type="button"
+                                            @click="sendMessage">
+                                            <i class="fa-regular fa-paper-plane"></i>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
         </section>

@@ -3,7 +3,7 @@ export type suggestions = Array<{
 }>
 
 export type Listing = {
-
+    id: string
     description: string,
     ref: string,
     location: string,

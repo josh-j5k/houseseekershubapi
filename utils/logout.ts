@@ -5,9 +5,6 @@ export default async function () {
     if (!error) {
         if (useRoute().meta.middleware !== undefined) {
             navigateTo('/login')
-        } else {
-
-            location.reload()
         }
         localStorage.removeItem('user')
 

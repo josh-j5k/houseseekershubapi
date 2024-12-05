@@ -13,14 +13,14 @@ const xsrfUrl = new URL('/sanctum/csrf-cookie', base)
 export default function useBackend() {
     const loading = ref(true)
     const btnLoading = ref(false)
-    const headers = <{ [x: string]: string }>{}
+    const headers = <{ [x: string]: string }>{
+        Accept: 'application/json'
+    }
     const user = ref(<user | undefined>undefined)
     if (import.meta.client) {
         const item = localStorage.getItem('user')
         item ? user.value = JSON.parse(item) : ''
     }
-
-
 
     async function handleRequest(method: method, endpoint: endpoint, query: query = undefined, contentType: contentType = 'json') {
 
@@ -28,10 +28,10 @@ export default function useBackend() {
         const url = new URL("/api" + endpoint, base)
 
         if (contentType == 'json') {
-            headers['Accept'] = 'application/json'
+
             headers['Content-Type'] = 'application/json'
         } else {
-            headers['Accept'] = 'application/x-www-form-urlencoded'
+            // headers['Accept'] = 'application/x-www-form-urlencoded'
             headers['Content-Type'] = 'multipart/form-data'
         }
 

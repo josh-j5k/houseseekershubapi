@@ -2,7 +2,7 @@
 import type { user } from '~/types/user';
 
 
-const user = useState('user').value as user
+const user = computed(() => useState('user').value as user)
 const toggled = ref(false)
 const dropdownToggled = ref(false)
 const activeLinkClass = "text-accent font-bold lg:border-b-2 lg:pb-[1px] lg:border-accent"
@@ -89,7 +89,7 @@ onUnmounted(() => {
                             <span>
                                 <i class="fas fa-circle-plus"></i>
                             </span>
-                            <span class="capitalize">
+                            <span class="capitalize ">
                                 new listing
                             </span>
                         </button>
@@ -108,45 +108,50 @@ onUnmounted(() => {
                                 </span>
                             </button>
 
-                            <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle" v-else
-                                type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
-                                <span v-if="user.user.avatar" id="avatar">
-                                    <img :src="user.user.avatar" alt="user avatar"
-                                        class="w-8 aspect-square rounded-full">
-                                </span>
-                                <span id="avatar" v-else
-                                    class="w-8 aspect-square flex justify-center items-center bg-slate-900 rounded-full text-white border border-accent">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <span id="user_name">
-                                    {{ user.user.name.split(' ')[0] }}
-                                </span>
-                                <span id="dropdown-icon" class="text-sm">
-                                    <i class="fas fa-caret-down"></i>
-                                </span>
-                            </button>
-                            <div v-if="user !== undefined"
-                                class="absolute lg:hidden bg-gray-50 shadow py-4 px-8 -top-[450%] right-0 flex-col items-start gap-2 transition-opacity duration-500 ease-in-out"
-                                id="dashboard_dropdown "
-                                :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
-                                <nav>
-                                    <ul>
-                                        <li class="capitalize">
-                                            <NuxtLink :to="{ name: 'au-id', params: { id: user.user.ref } }">dashboard
-                                            </NuxtLink>
-                                        </li>
-                                        <li class="capitalize">
-                                            <NuxtLink :to="{ name: 'au-id-profile', params: { id: user.user.ref } }">
-                                                profile
-                                            </NuxtLink>
-                                        </li>
-                                        <li role="button" @click="logout" class="capitalize cursor-pointer">
-                                            logout
-                                        </li>
-                                    </ul>
-                                </nav>
-
+                            <div v-else class="relative">
+                                <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle"
+                                    type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
+                                    <span v-if="user.user.avatar" id="avatar">
+                                        <img :src="user.user.avatar" alt="user avatar"
+                                            class="w-8 aspect-square rounded-full">
+                                    </span>
+                                    <span id="avatar" v-else
+                                        class="w-8 aspect-square flex justify-center items-center bg-slate-900 rounded-full text-white border border-accent">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                    <span id="user_name">
+                                        {{ user.user.name.split(' ')[0] }}
+                                    </span>
+                                    <span id="dropdown-icon" class="text-sm">
+                                        <i class="fas fa-caret-down"></i>
+                                    </span>
+                                </button>
+                                <div class="absolute -md:top-10 lg:hidden bg-gray-50 shadow py-4 w-36 right-0 flex-col items-center text-lg transition-opacity duration-500 ease-in-out"
+                                    id="dashboard_dropdown "
+                                    :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
+                                    <nav>
+                                        <ul class="flex flex-col gap-4 ">
+                                            <li class="capitalize">
+                                                <NuxtLink :to="{ name: 'au-id', params: { id: user.user.ref } }">
+                                                    dashboard
+                                                </NuxtLink>
+                                            </li>
+                                            <li class="capitalize">
+                                                <NuxtLink
+                                                    :to="{ name: 'au-id-profile', params: { id: user.user.ref } }">
+                                                    profile
+                                                </NuxtLink>
+                                            </li>
+                                            <li role="button" @click="logout" class="capitalize cursor-pointer">
+                                                logout
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
                             </div>
+
+
+
                         </div>
 
                         <template #fallback>
@@ -168,13 +173,10 @@ onUnmounted(() => {
         <hr class="w-[80%] h-[1px] mx-auto bg-white opacity-20 mt-4 -lg:hidden"
             :class="[$route.name === 'index' ? '' : 'hidden']">
     </header>
-
-
     <!-- Mobile hamburger menu -->
+    <HeaderHambugerMenu :dropdown-toggled :user="user" />
 
-    <ClientOnly>
-        <HeaderHambugerMenu :dropdown-toggled :user="user" />
-    </ClientOnly>
+
 </template>
 
 <style scoped>

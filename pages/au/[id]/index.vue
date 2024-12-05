@@ -158,7 +158,7 @@ onMounted(() => {
         </div>
     </template>
     <template v-else>
-        <div class=" py-2 lg:h-[calc(100vh-65px)] lg:overflow-hidden">
+        <div class=" py-2 -md:pb-20 lg:h-[calc(100vh-65px)] lg:overflow-hidden">
             <div class="w-[98%] bg-white shadow-sm  h-full -md:w-full sm:rounded-lg mx-auto sm:px-6 lg:px-2">
                 <div v-if="listings.data && listings.data.length == 0" class="p-4 pt-8 text-center text-gray-900">
                     <h2 class="text-2xl mb-4 font-bold">

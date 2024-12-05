@@ -16,25 +16,26 @@ export function useFileUpload() {
         filesArr.value.length = 0
     }
     function assignFiles(fileInput: HTMLInputElement) {
+        if (fileInput.getAttribute('data-listener') == null) {
+            fileInput.setAttribute('data-listener', "true")
+            fileInput.addEventListener('change', (ev: Event) => {
+                const inputTarget = ev.target as HTMLInputElement
+                if (inputTarget.files !== null) {
+                    for (let index = 0; index < inputTarget.files.length; index++) {
+                        const file = inputTarget.files[index] as File
+                        if (!file.type.startsWith("image/")) {
+                            return
+                        }
 
-        fileInput.addEventListener('change', (ev: Event) => {
-            const inputTarget = ev.target as HTMLInputElement
-            if (inputTarget.files !== null) {
-                for (let index = 0; index < inputTarget.files.length; index++) {
-                    const file = inputTarget.files[index] as File
-                    if (!file.type.startsWith("image/")) {
-                        return
+                        handleFiles(file)
+                        filesArr.value = [...filesArr.value, file]
                     }
 
-                    handleFiles(file)
-                    filesArr.value = [...filesArr.value, file]
                 }
-                console.log(fileInput.value);
-                console.log(fileInput.files);
+                updateFilesDisplayImages(fileInput)
+            })
+        }
 
-            }
-            updateFilesDisplayImages(fileInput)
-        })
     }
 
     function dragenter(e: MouseEvent) {
