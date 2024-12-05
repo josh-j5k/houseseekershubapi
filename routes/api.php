@@ -5,6 +5,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\BookmarkController;
 
 Route::prefix('listings')->group(function () {
     Route::get('/', [ListingController::class, 'index'])->name('listings');
@@ -13,7 +14,14 @@ Route::prefix('listings')->group(function () {
 });
 
 Route::post('/contact', [ContactController::class, 'store']);
+
+
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix("bookmark")->group(function () {
+
+        Route::post('/{listing}', [BookmarkController::class, 'store']);
+
+    });
     Route::prefix("messages")->group(function () {
         Route::get('/users', [MessageController::class, 'getUsers']);
         Route::get('/', [MessageController::class, 'index']);

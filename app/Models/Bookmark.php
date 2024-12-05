@@ -11,10 +11,18 @@ class Bookmark extends Model
     use HasFactory;
 
     protected $fillable = [
-        'users_id',
-        'listings_id',
+        'user_id',
+        'listing_id',
     ];
-
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'user_id',
+        'id'
+    ];
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

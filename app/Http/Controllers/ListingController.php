@@ -17,6 +17,7 @@ use App\Http\Requests\ListingsRequest;
 use App\Http\Resources\ListingResource;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Requests\ListingStoreRequest;
+use App\Models\Bookmark;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class ListingController extends Controller
@@ -82,17 +83,21 @@ class ListingController extends Controller
             }
             $userRef = $listing[0]->user->ref;
             $data = ListingResource::collection($listing);
-            $model = Sanctum::$personalAccessTokenModel;
 
-            $accessToken = $model::findToken($request->bearerToken());
             $payload = [
                 'listing' => $data[0],
-                't' => $accessToken
+
             ];
 
             if ($request->bearerToken()) {
+                $model = Sanctum::$personalAccessTokenModel;
+                $accessToken = $model::findToken($request->bearerToken());
 
-                $payload['canShare'] = $userRef;
+                if ($accessToken) {
+                    $payload['canShare'] = $userRef;
+                    $bookmark = Bookmark::where('user_id', $accessToken->tokenable_id)->where('listing_id', $listing[0]->id)->first();
+                    $payload['bookmark'] = $bookmark ? true : false;
+                }
             }
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), $th->getTrace(), statusCode: 406);
