@@ -9,7 +9,7 @@ use App\Http\Controllers\BookmarkController;
 
 Route::prefix('listings')->group(function () {
     Route::get('/', [ListingController::class, 'index'])->name('listings');
-    Route::get('/{ref}', [ListingController::class, 'show'])->name('listings.show');
+    Route::get('/{id}', [ListingController::class, 'show'])->name('listings.show');
 
 });
 
@@ -18,7 +18,7 @@ Route::post('/contact', [ContactController::class, 'store']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::prefix("bookmark")->group(function () {
-
+        Route::get('/', [BookmarkController::class, 'index']);
         Route::post('/{listing}', [BookmarkController::class, 'store']);
 
     });
@@ -31,8 +31,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
     Route::prefix('listings')->group(function () {
         Route::post('/store', [ListingController::class, 'store'])->name('listings.store');
-        Route::put('/update', [ListingController::class, 'update'])->name('listings.update');
-        Route::delete('/delete/{ref}', [ListingController::class, 'update'])->name('listings.delete');
+        Route::put('/update/{id}', [ListingController::class, 'update'])->name('listings.update');
+        Route::delete('/delete/{id}', [ListingController::class, 'update'])->name('listings.delete');
         Route::get('/user/listings', [ListingController::class, 'userListings'])->name('user.listings');
     });
 });

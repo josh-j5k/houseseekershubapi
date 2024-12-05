@@ -46,7 +46,9 @@ class User extends Authenticatable
         'id',
         'remember_token',
         'provider_id',
-        'provider'
+        'provider',
+        "created_at",
+        "updated_at"
     ];
 
     /**

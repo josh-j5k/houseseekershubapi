@@ -21,7 +21,10 @@ class Bookmark extends Model
      */
     protected $hidden = [
         'user_id',
-        'id'
+        'id',
+        "created_at",
+        "updated_at"
+
     ];
     public function user(): BelongsTo
     {

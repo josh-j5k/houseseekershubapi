@@ -22,5 +22,9 @@ class Listing extends Model
         'description',
         'ref'
     ];
-
+    protected $hidden = [
+        "created_at",
+        "updated_at",
+        'user_id',
+    ];
 }

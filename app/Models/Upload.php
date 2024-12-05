@@ -13,6 +13,13 @@ class Upload extends Model
         'url',
         'description'
     ];
+    protected $hidden = [
+        'id',
+        "uploadable_id",
+        "uploadable_type",
+        "created_at",
+        "updated_at"
+    ];
     public function uploadable(): MorphTo
     {
         return $this->morphTo();

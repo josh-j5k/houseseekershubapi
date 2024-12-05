@@ -56,11 +56,11 @@ class ListingController extends Controller
             $limit = (int) $request->limit ?: 16;
             $page = (int) $request->page ?: 1;
             $total = Listing::count();
-
+            $offset = ($page - 1) * $limit;
             $hasMorePages = ($limit * $page) < $total ? true : false;
             $listings = Listing::orderByDesc('created_at')->filter($filters)
-                ->when($page > 1, function (Builder $builder) use ($page, $limit) {
-                    $builder->offset($page * $limit);
+                ->when($page > 1, function (Builder $builder) use (&$offset) {
+                    $builder->offset($offset);
                 })->limit($limit)->get();
 
             $data = ListingResource::collection($listings);
