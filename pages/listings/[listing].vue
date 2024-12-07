@@ -128,6 +128,22 @@ function nextPic() {
 }
 
 
+
+useSeoMeta({
+    ogImage: {
+        url: data.value.data.listing.images[0],
+        secureUrl: data.value.data.listing.images[0]
+    },
+    ogDescription: data.value.data.listing.description,
+
+    ogTitle: data.value.data.listing.title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/listings/create',
+    twitterCard: "summary_large_image",
+    twitterImage: data.value.data.listing.images[0],
+    title: data.value.data.listing.title.concat(" | House Seekers Hub"),
+    description: data.value.data.listing.description
+})
 </script>
 <template>
 
@@ -138,7 +154,6 @@ function nextPic() {
         </div>
     </template>
     <template v-else>
-        <!-- <Head :title="listing.title.concat(' | House Seeekers Hub')" /> -->
         <section class="md:h-screen min-h-screen w-full overflow-x-hidden">
             <CloseButton route-name="/listings" position="top-8 left-8" />
             <div class="grid lg:grid-cols-[75%_25%] grid-cols-1">

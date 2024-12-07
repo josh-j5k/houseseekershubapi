@@ -4,7 +4,7 @@ import type { Listing, Listings } from '~/types/listings';
 
 const loading = ref(true)
 const listings = ref(<Listings>{
-    data: <Listing[]>[]
+    listings: <Listing[]>[]
 })
 const { handleRequest } = useBackend()
 const location = ref(<string | null>null)
@@ -29,7 +29,7 @@ async function getListings(query: any) {
     loading.value = true
     const { data, error } = await handleRequest('get', '/listings', query)
     if (!error) {
-        listings.value.data = data.data.listings
+        listings.value.listings = data.data.listings
         listings.value.hasMorePages = data.data.hasMorePages
 
     }
@@ -117,31 +117,17 @@ export function useListing() {
         }
         return decodedQuery
     }
-    async function loadMore(page: string) {
 
-        const decodedQuery = decodeQuery()
-        decodedQuery['page'] = page
-        const { data, error } = await handleRequest('get', '/listings', decodedQuery)
-        if (!error) {
-            listings.value.data = [...listings.value.data, ...data.data.listings]
-            listings.value.hasMorePages = data.data.hasMorePages
-        }
-    }
-    function init() {
-        const decodedQuery = decodeQuery()
-        getListings(decodedQuery)
-    }
-    function statusSubmit() {
-        submit('status', status.value)
-    }
-    function locationSubmit() {
+
+    function locationValidate(): boolean {
         if (location.value === null || location.value.length === 0) {
             errors.locationError = true
             setTimeout(() => errors.locationError = false, 4000)
-            return
+            return false
         }
-        submit('location', location.value)
+        return true
     }
+
     function setPriceError() {
         errors.priceError = true
         setTimeout(() => errors.priceError = false, 4000)
@@ -163,27 +149,7 @@ export function useListing() {
         return true
     }
 
-    function priceSubmit() {
-
-        if (priceValidate()) {
-            if (price.value.min && price.value.max) {
-                submit('price', 'over'.concat(price.value.min) + '|' + 'under'.concat(price.value.max))
-                return
-            }
-            if (price.value.min) {
-                submit('price', 'over'.concat(price.value.min))
-                return
-            }
-            if (price.value.max) {
-                submit('price', 'under'.concat(price.value.max))
-                return
-            }
-        }
-    }
-    function propertySubmit() {
-        submit('property_type', propertyType.value.join('|'))
-    }
-    function removeFilter(e: string): void {
+    function removeQueryParams(e: string) {
         const newQuery = { ...useRoute().query }
         const decodedQuery = <LocationQuery>{}
         for (const key in newQuery) {
@@ -233,27 +199,18 @@ export function useListing() {
                 decodedQuery[key] = decoded
             }
         }
-        navigateTo({
-            path: '/listings',
-            query: newQuery
-        })
-        decodedQuery['limit'] = perPage.value
-        getListings(decodedQuery)
+        return { decodedQuery, newQuery }
     }
 
     return {
-        loading,
-        listings,
+
         location,
         errors: readonly(errors),
         price, status, propertyType,
-        statusSubmit,
-        priceSubmit, propertySubmit,
-        locationSubmit,
-        removeFilter,
-        init,
-        loadMore,
+        locationValidate,
+        priceValidate,
         decodeQuery,
+        removeQueryParams,
         encodeQuery
     }
 }

@@ -55,6 +55,29 @@ async function submit() {
         toastNotification('Success', 'Feedback sent successsfully')
     }
 }
+const title = 'Get In Touch With Us'
+const description = "If you’re interested in more information or arranging a viewing for any property listed with us. Contact us"
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/contact',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image',
+    title: title.concat(" | House Seekers Hub"),
+    description: description
+})
 </script>
 <template>
 

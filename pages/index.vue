@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { Listings, Listing } from '~/types/listings';
+import type { ListingsResponse, Listing } from '~/types/listings';
 
 const { handleRequest } = useBackend();
-const loading = ref(false)
-const listings = ref(<Listings>{
-    data: <Listing[]>[]
-})
+const loading = ref(true)
+const listings = ref(<Listing[]>[])
 
 const { storedListings } = useStoredListings()
 
@@ -31,20 +29,30 @@ async function submit() {
         query: query
     })
 }
-(async function () {
-    if (storedListings == undefined) {
-        loading.value = true
-        const { data, error } = await handleRequest('get', '/listings?limit=4')
-        if (!error) {
-            listings.value.data = data.data.listings
-            loading.value = false
-            return
+if (storedListings == undefined) {
+    const response = await useLazyFetch('/api/listings', {
+        query: {
+            limit: 4
         }
+    })
+    if (response.error.value == null) {
+        const data = response.data.value as unknown as ListingsResponse
+
+        listings.value = data.data.listings
         loading.value = false
+    } else {
+        loading.value = false
+
     }
-})()
+} else {
+    listings.value = storedListings.listings.slice(0, 4)
+}
+
 const title = "House, properties to rent and for sale"
 const description = "Find the perfect house for you only on house seekers hub. A marketplace where users can rent or sell houses"
+useHead({
+    title,
+})
 useSeoMeta({
     ogImage: {
         url: '/og image',
@@ -53,7 +61,7 @@ useSeoMeta({
         secureUrl: '/og image'
     },
     ogDescription: description,
-    ogSiteName: 'House Seekers Hub',
+
     ogTitle: title,
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com',
@@ -188,7 +196,7 @@ useSeoMeta({
             </div>
             <div class="px-8 grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-3 md:translate-y-[5%]">
                 <template v-if="storedListings == undefined ? loading : false">
-                    <template v-for="(_, index) in 4">
+                    <template v-for="(_) in 4">
                         <Card class="bg-white relative">
                             <div class="flex flex-col items-center gap-3">
                                 <Skeleton class="aspect-square w-full" />
@@ -204,7 +212,7 @@ useSeoMeta({
                     </template>
                 </template>
                 <template v-else>
-                    <template v-for="(listing, index) in storedListings?.data ? storedListings.data : listings.data">
+                    <template v-for="(listing, index) in listings">
                         <Card class="bg-white relative">
                             <img lazy :src="listing.images[0]" alt="listing image" class="w-full aspect-square">
                             <div class="p-4">

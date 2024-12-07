@@ -1,21 +1,20 @@
 <script setup lang="ts">
+import type { LocationQuery, LocationQueryValue } from 'vue-router';
+import type { ListingsResponse, Listing } from '@/types/listings'
 
-import { type Listings } from '@/types/listings'
+const { decodeQuery, propertyType, location, status, price, priceValidate, locationValidate, removeQueryParams } = useListing()
 
-
-
-// const { usePlaces, inputValue } = useGoogleMaps()s
-
-const { loading, listings, init, removeFilter, loadMore, decodeQuery } = useListing()
 const { setStoredListings, storedListings } = useStoredListings()
 
+const listings = ref(<Listing[]>Array(0))
+const loading = ref(true)
+const hasMorePages = ref(false)
 const page = ref(1)
 const per_page = ref('16')
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
 const loadmore = ref(false)
-
-
+const query = decodeQuery()
 const filter = computed(() => {
     let arr = <string[]>[]
     for (const key in useRoute().query) {
@@ -29,31 +28,103 @@ const filter = computed(() => {
     }
     return arr
 })
+
 if (storedListings == undefined) {
-    const query = decodeQuery()
-    const response = await useFetch('/api/listings', {
-        query: query,
-        lazy: true
-
+    const response = await useLazyFetch('/api/listings', {
+        query
     })
-    loading.value = false
+
     if (response.error.value == null) {
-        const data = response.data.value as unknown as { status: string, message: string, data: Listings }
-        console.log(data);
+        const data = response.data.value as unknown as ListingsResponse
+
+        if (Object.keys(query).length == 0) {
+            setStoredListings(data.data)
+            listings.value = data.data.listings
+            hasMorePages.value = data.data.hasMorePages
+        } else {
+
+            listings.value = data.data.listings
+            hasMorePages.value = data.data.hasMorePages
+        }
 
 
-        // if (Object.keys(query).length == 0) {
-        //     setStoredListings(data.data)
-        //     listings.value = data.data
-        // } else {
-        listings.value = data.data
-        // }
-        // console.log(listings.value);
+        loading.value = false
+    } else {
+        loading.value = false
 
     }
+} else {
+    listings.value = storedListings.listings
 }
 
+async function removeFilter(e: string) {
+    const { decodedQuery, newQuery } = removeQueryParams(e)
+    navigateTo({
+        path: '/listings',
+        query: newQuery
+    })
+    loading.value = true
+    const data = await $fetch('/api/listings', {
+        query: decodedQuery
+    }) as unknown as ListingsResponse
+    if (data.status == 'success') {
+        listings.value = data.data.listings
+        hasMorePages.value = data.data.hasMorePages
+    }
+    loading.value = false
 
+}
+
+async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
+    const encoded = encodeURIComponent(value?.toString()!)
+    const newQuery = { ...useRoute().query }
+    newQuery[name] = encoded
+    await navigateTo({
+        path: '/listings',
+        query: newQuery
+    })
+    const decoded = <LocationQuery>{}
+    for (const [key, value] of Object.entries(newQuery)) {
+        decoded[key] = decodeURIComponent(value as string)
+    }
+    loading.value = true
+    const data = await $fetch('/api/listings', {
+        query: decoded
+    }) as unknown as ListingsResponse
+    if (data.status == 'success') {
+        listings.value = data.data.listings
+        hasMorePages.value = data.data.hasMorePages
+    }
+    loading.value = false
+}
+
+function submitLocation() {
+    if (locationValidate()) {
+        submit('location', location.value)
+    }
+}
+function submitPrice() {
+    if (priceValidate()) {
+        if (price.value.min && price.value.max) {
+            submit('price', 'over'.concat(price.value.min) + '|' + 'under'.concat(price.value.max))
+            return
+        }
+        if (price.value.min) {
+            submit('price', 'over'.concat(price.value.min))
+            return
+        }
+        if (price.value.max) {
+            submit('price', 'under'.concat(price.value.max))
+            return
+        }
+    }
+}
+function submitProperty() {
+    submit('property_type', propertyType.value.join('|'))
+}
+function submitStatus() {
+    submit('status', status.value)
+}
 
 onMounted(() => {
     const target = document.getElementById("loadmore")!;
@@ -63,13 +134,21 @@ onMounted(() => {
     };
     async function moreListing() {
         loadmore.value = true
-        await loadMore(page.value.toString())
+        const decodedQuery = decodeQuery()
+        decodedQuery['page'] = page.value.toString()
+        const data = await $fetch('/api/listings', {
+            query: decodedQuery
+        }) as unknown as ListingsResponse
+        if (data.status == 'success') {
+            listings.value = [...listings.value, ...data.data.listings]
+            hasMorePages.value = data.data.hasMorePages
+        }
         loadmore.value = false
     }
     const observer = new IntersectionObserver(function (e) {
         const intersection = e[0]
 
-        if (intersection.isIntersecting && (listings.value.hasMorePages || storedListings?.hasMorePages)) {
+        if (intersection.isIntersecting && (hasMorePages.value || storedListings?.hasMorePages)) {
             page.value++
             moreListing()
         }
@@ -77,14 +156,43 @@ onMounted(() => {
     }, options);
     observer.observe(target)
 })
+onUnmounted(() => {
+    if (Object.keys(useRoute().query).length > 0) {
+        clearNuxtState('listings')
+    }
+})
+const title = 'Houses For Sale And For Rent'
+const description = "View all the available houses for rent and for sale. You are one step further in finding the perfect house"
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/listings',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image',
+    title: title.concat(" | House Seekers Hub"),
+    description: description
+})
 </script>
 
 <template>
 
     <section class="min-h-screen w-full overflow-x-hidden relative "
-        :class="[sidebarToggled ? 'sidebar' : '', listings.data && listings.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
+        :class="[sidebarToggled ? 'sidebar' : '', listings.length > 0 ? 'bg-gray-200' : 'bg-white']">
         <div class="grid lg:grid-cols-[25%_75%] min-h-screen grid-cols-1 -md:gap-4">
-            <ListingsSidebar :sidebar-toggled="sidebarToggled" />
+            <ListingsSidebar @location-submit="submitLocation" @price-submit="submitPrice"
+                @property-submit="submitProperty" @status-submit="submitStatus" :sidebar-toggled="sidebarToggled" />
             <div>
 
                 <div class="">
@@ -173,10 +281,11 @@ onMounted(() => {
                         </div>
                     </template>
                     <template v-else>
-                        <template v-if="listings.data && listings.data.length > 0">
+
+                        <template v-if="listings.length > 0">
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
-                                <template v-for="(listing) in listings.data">
+                                <template v-for="(listing) in listings">
                                     <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
                                         <Card class="bg-white relative"
                                             :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
@@ -245,6 +354,7 @@ onMounted(() => {
 
                         </template>
                         <template v-else>
+
                             <div class="flex flex-col gap-3 justify-center items-center mt-16 w-[90%] mx-auto">
                                 <span>
                                     <i class="fa-solid fa-triangle-exclamation text-4xl"></i>

@@ -69,7 +69,7 @@ if (userListings == undefined) {
     (async function () {
         const { data, error } = await handleRequest('get', '/listings/user/listings')
         if (!error) {
-            listings.value.data = data.data.listings
+            listings.value.listings = data.data.listings
             listings.value.hasMorePages = data.data.hasMorePages
             useState('userListings', () => listings.value)
         }
@@ -80,12 +80,12 @@ if (userListings == undefined) {
 function showEditModal() {
     show.value = false
     show_edit_modal.value = true
-    form.value.title = listings.value.data[currentIndex.value].title
-    form.value.location = listings.value.data[currentIndex.value].location
-    form.value.price = listings.value.data[currentIndex.value].price
-    form.value.description = listings.value.data[currentIndex.value].description
-    form.value.property_status = listings.value.data[currentIndex.value].propertyStatus
-    form.value.property_type = listings.value.data[currentIndex.value].propertyType
+    form.value.title = listings.value.listings[currentIndex.value].title
+    form.value.location = listings.value.listings[currentIndex.value].location
+    form.value.price = listings.value.listings[currentIndex.value].price
+    form.value.description = listings.value.listings[currentIndex.value].description
+    form.value.property_status = listings.value.listings[currentIndex.value].propertyStatus
+    form.value.property_type = listings.value.listings[currentIndex.value].propertyType
     setTimeout(() => {
 
         function dropEnter(ev: any) {
@@ -98,7 +98,7 @@ function showEditModal() {
         dropbox.addEventListener("dragenter", dragenter, false);
         dropbox.addEventListener("dragover", dragover, false);
         dropbox.addEventListener("drop", dropEnter, false);
-        total.value = listings.value.data[currentIndex.value].images.length
+        total.value = listings.value.listings[currentIndex.value].images.length
     }, 100)
 }
 
@@ -117,8 +117,8 @@ function removePhoto(ev: MouseEvent) {
 function deletePhoto(ev: MouseEvent) {
     const btn = ev.currentTarget as HTMLButtonElement
     const btnIndex = parseInt(btn.value)
-    form.value.deletedImages.push(listings.value.data[currentIndex.value].images[btnIndex])
-    listings.value.data[currentIndex.value].images.splice(btnIndex, 1)
+    form.value.deletedImages.push(listings.value.listings[currentIndex.value].images[btnIndex])
+    listings.value.listings[currentIndex.value].images.splice(btnIndex, 1)
 }
 
 async function submit() {
@@ -126,7 +126,7 @@ async function submit() {
         form.value.inputFiles = filesArr.value
     }
     if (validation(form.value, total.value)) {
-        const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.data[currentIndex.value].id, form.value, 'multpartForm')
+        const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.listings[currentIndex.value].id, form.value, 'multpartForm')
         if (!error) {
             toastNotification('Success', data.message)
             show_edit_modal.value = false
@@ -143,7 +143,7 @@ async function submit() {
 }
 
 async function deleteConfirmed() {
-    const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.data[currentIndex.value].id))
+    const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.listings[currentIndex.value].id))
     if (!error) {
         toast('Success', 'Listing was deleted successfully!')
     } else {
@@ -170,7 +170,8 @@ onMounted(() => {
     <template v-else>
         <div class=" py-2 -md:pb-20 lg:h-[calc(100vh-65px)] lg:overflow-hidden">
             <div class="w-[98%] bg-white shadow-sm  h-full -md:w-full sm:rounded-lg mx-auto sm:px-6 lg:px-2">
-                <div v-if="listings.data && listings.data.length == 0" class="p-4 pt-8 text-center text-gray-900">
+                <div v-if="listings.listings && listings.listings.length == 0"
+                    class="p-4 pt-8 text-center text-gray-900">
                     <h2 class="text-2xl mb-4 font-bold">
                         You have no listings
                     </h2>
@@ -186,7 +187,7 @@ onMounted(() => {
                 </div>
                 <div v-else class="p-2 h-full text-gray-900 gap-8 overflow-hidden lg:grid grid-cols-[45%_55%]">
                     <div class="flex overflow-auto flex-col gap-4">
-                        <template v-for="(listing, index) in listings.data">
+                        <template v-for="(listing, index) in listings.listings">
                             <Card @click="currentIndex = index"
                                 :class="currentIndex == index ? 'border-l-2 border-blue-600' : ''"
                                 class="bg-white flex gap-4 cursor-pointer -lg:hidden">
@@ -287,17 +288,17 @@ onMounted(() => {
                         </template>
                     </div>
                     <div class="px-3 overflow-auto scrollbar_invisible -lg:hidden">
-                        <h2 class="mb-4 text-2xl font-bold">{{ listings.data[currentIndex].title }}</h2>
+                        <h2 class="mb-4 text-2xl font-bold">{{ listings.listings[currentIndex].title }}</h2>
                         <div class="grid grid-cols-[70%_30%] overflow-hidden gap-3 h-[390px]">
 
-                            <img v-if="listings.data[currentIndex].images.length > 0"
-                                :src="listings.data[currentIndex].images[mainImage]" alt=""
+                            <img v-if="listings.listings[currentIndex].images.length > 0"
+                                :src="listings.listings[currentIndex].images[mainImage]" alt=""
                                 class="row-span-full aspect-square">
                             <img v-else src="/Images/no_image_placeholder.jpg" alt=""
                                 class="w-96 rounded-3xl aspect-square">
                             <div class="flex flex-col gap-3 scrollbar_invisible overflow-y-auto">
-                                <template v-if="listings.data[currentIndex].images.length > 0"
-                                    v-for="(image, index) in listings.data[currentIndex].images">
+                                <template v-if="listings.listings[currentIndex].images.length > 0"
+                                    v-for="(image, index) in listings.listings[currentIndex].images">
                                     <img @click="mainImage = index" :src="image" alt=""
                                         class="w-36 aspect-square object-cover rounded-xl cursor-pointer">
                                 </template>
@@ -312,7 +313,7 @@ onMounted(() => {
                                 <i class="fas fa-location-dot"></i>
                             </span>
                             <span>
-                                {{ listings.data[currentIndex].location }}
+                                {{ listings.listings[currentIndex].location }}
                             </span>
                         </p>
                         <hr class="w-full h-[1px] bg-gray-200 my-4">
@@ -320,7 +321,7 @@ onMounted(() => {
                             Property details
                         </p>
                         <p class="text-gray-700 ">
-                            {{ listings.data[currentIndex].description }}
+                            {{ listings.listings[currentIndex].description }}
                         </p>
                         <div class="flex justify-between mt-3">
                             <button @click="showEditModal" class="flex flex-col items-center">
@@ -347,167 +348,33 @@ onMounted(() => {
         </div>
     </template>
     <!-- edit modal -->
-    <Modal :show="show_edit_modal" @close="closeEditModal">
-        <div class="p-8">
-            <form @submit.prevent="submit" enctype="multipart/form-data">
-                <div class="flex flex-col gap-4">
-                    <div class="relative max-h-[190px]  bg-gray-100  "
-                        :class="[listings.data[currentIndex].images ? 'grid lg:grid-cols-3 grid-cols-2 gap-2 overflow-x-hidden overflow-y-auto p-4' : total > 0 ? 'grid lg:grid-cols-3 grid-cols-2 gap-2 overflow-x-hidden overflow-y-auto p-4' : 'justify-center items-center overflow-hidden']">
-                        <template v-for="(item, index) in imgSrc">
-                            <div
-                                class="relative before:content-emptystring before:absolute before:w-full before:h-full before:inset-0 before:bg-[rgba(255,_255,_255,_0.1)] before:z-10">
-                                <img :src="item" alt="" class="w-full aspect-square object-cover rounded">
-                                <button @click="removePhoto" :value="index" type="button"
-                                    class="w-6 aspect-square bg-white rounded-full absolute top-2 right-4 z-20">
-                                    <span>
-                                        <i class="fas fa-xmark"></i>
-                                    </span>
-                                </button>
-                            </div>
-                        </template>
-                        <template v-for="(item, index) in listings.data[currentIndex].images">
-                            <div v-if="listings.data[currentIndex].images.length > 0"
-                                class="relative before:content-emptystring before:absolute before:w-full before:h-full before:inset-0 before:bg-[rgba(255,_255,_255,_0.1)] before:z-10">
-                                <img :src="item" alt="" class="w-full aspect-square object-cover rounded">
-                                <button @click="deletePhoto" :value="index" type="button"
-                                    class="w-6 aspect-square bg-white rounded-full absolute top-2 right-4 z-20">
-                                    <span>
-                                        <i class="fas fa-xmark"></i>
-                                    </span>
-                                </button>
-                            </div>
-                        </template>
-                        <FileUpload @file-upload="fileUpload" file_type="image" :file-error="formErrors.fileError"
-                            width="100%" accept=".jpg, .jpeg, .png, .webp" />
-                    </div>
-
-                    <p v-if="formErrors.fileError" class="text-red-500"> Please upload at least one photo.</p>
-                    <div class="flex flex-col">
-                        <label for="listing_title" class="capitalize font-bold text-lg mb-3">listing title</label>
-                        <input v-model="form.title" type="text" name="listing title" id="listing_title"
-                            placeholder="Enter listing title" class="rounded-md"
-                            :class="[formErrors.titleError ? 'border-red-500' : '']">
-                    </div>
-                    <p v-if="formErrors.titleError" class="text-red-500">
-                        Please fill the title field.
-                    </p>
-                    <div class="flex flex-col">
-                        <label for="property_status" class="capitalize font-bold text-lg mb-3">property
-                            status</label>
-                        <select v-model="form.property_status" name="property status" id="proptery-status"
-                            class="rounded-md">
-                            <option disabled> Choose property status</option>
-                            <option value="rent">For Rent</option>
-                            <option value="sale">For Sale</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="price_per_month" class="capitalize font-bold text-lg mb-3">price per
-                            month</label>
-                        <div class="relative">
-                            <input v-model="form.price" type="text" name="listing price" id="price_per_month"
-                                placeholder="Enter the price per month" class="px-14 w-full rounded-md"
-                                :class="[formErrors.priceError ? 'border-red-500' : '']">
-                            <span class="font-bold absolute left-2 top-1/2 text-secondary -translate-y-1/2">XAF</span>
-                        </div>
-                        <p v-if="formErrors.priceError" class="text-red-500">
-                            Please enter a valid price.
-                        </p>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="property_location" class="capitalize font-bold text-lg mb-3">property
-                            location</label>
-                        <input v-model="form.location" type="text" name="location location" id="property_location"
-                            placeholder="Enter the property location" class="rounded-md"
-                            :class="[formErrors.locationError ? 'border-red-500' : '']">
-                    </div>
-                    <p v-if="formErrors.locationError" class="text-red-500">
-                        Please enter a valid location.
-                    </p>
-                    <div class="flex flex-col">
-                        <label for="property_type" class="capitalize font-bold text-lg mb-3">property
-                            type</label>
-                        <select v-model="form.property_type" name="property type" id="proptery-type" class="rounded-md"
-                            :class="[formErrors.propertyTypeError ? 'border-red-500' : '']">
-                            <option disabled> Choose property type</option>
-                            <option value="room">Room</option>
-                            <option value="studio">Studio</option>
-                            <option value="appartment">Appartment</option>
-                            <option value="duplex">Duplex</option>
-                        </select>
-                    </div>
-                    <p v-if="formErrors.propertyTypeError" class="text-red-500">
-                        Please chose a property type
-                    </p>
-                    <div class="flex flex-col">
-                        <label for="property_description" class="capitalize font-bold text-lg mb-3">property
-                            description</label>
-                        <textarea v-model="form.description" name="property_description" id="" cols="30" rows="10"
-                            class="rounded-md"
-                            :class="[formErrors.descriptionError ? 'border-red-500' : '']"></textarea>
-                    </div>
-                    <p v-if="formErrors.descriptionError" class="text-red-500">
-                        Please enter a description.
-                    </p>
-                    <button type="submit" class="bg-accent py-3 px-6 text-white">
-                        Update
-                    </button>
-                </div>
-            </form>
-        </div>
-    </Modal>
+    <AuthUserListingsEditModal :show_edit_modal :form :images="listings.listings[currentIndex].images"
+        @file-upload="fileUpload" @close-edit-modal="closeEditModal" @remove-photo="removePhoto"
+        @delete-photo="deletePhoto" @submit="submit" />
     <!-- show delete modal -->
-    <Modal :show="show_delete_warning" @close="closeDeleteWarning" max-width="sm">
-        <div class="p-8">
-            <p class="flex justify-center items-center gap-3 mb-4">
-                <span class="w-8 h-8 flex justify-center items-center rounded-full bg-gray-200 text-xl">
-                    <i class="fas fa-exclamation"></i>
-                </span>
-                <span>
-                    Are you sure you want to delete listing?
-                </span>
-            </p>
-            <div class="flex justify-between">
-                <button @click="deleteConfirmed" class="flex gap-2 py-1 px-3 rounded  bg-red-500 text-white">
-                    <span>
-                        <i class="fas fa-check"></i>
-                    </span>
-                    <span>
-                        Yes
-                    </span>
-                </button>
-                <button @click="closeDeleteWarning" class="flex gap-2 py-1 px-3 rounded bg-gray-500 text-white">
-                    <span>
-                        <i class="fas fa-xmark"></i>
-                    </span>
-                    <span>
-                        Cancel
-                    </span>
-                </button>
-            </div>
-        </div>
-    </Modal>
+    <AuthUserListingsDeleteModal :show_delete_warning @close-delete-warning="closeDeleteWarning"
+        @delete-confirmed="deleteConfirmed" />
     <!-- show primary modal -->
     <Modal :show="show" :closeable="closeable" @close="closeModal">
         <div class="p-8 relative">
             <div>
-                <img v-if="listings.data[currentIndex].images.length > 0" :src="listings.data[currentIndex].images[0]"
-                    alt="">
+                <img v-if="listings.listings[currentIndex].images.length > 0"
+                    :src="listings.listings[currentIndex].images[0]" alt="">
                 <img v-else src="/Images/no_image_placeholder.jpg" alt="">
             </div>
             <div>
                 <h2 class="font-bold text-2xl mt-6">
-                    {{ listings.data[currentIndex].title }}
+                    {{ listings.listings[currentIndex].title }}
                 </h2>
                 <p class="text-sm text-gray-500 mt-1">
-                    {{ listings.data[currentIndex].location }}
+                    {{ listings.listings[currentIndex].location }}
                 </p>
                 <p class="text-accent mt-2 mb-6">
-                    {{ listings.data[currentIndex].price }}
+                    {{ listings.listings[currentIndex].price }}
                 </p>
                 <h3 class="font-bold text-lg mb-3">Description</h3>
                 <p>
-                    {{ listings.data[0].description }}
+                    {{ listings.listings[0].description }}
                 </p>
                 <div class="flex justify-between mt-3">
                     <button @click="showEditModal" class="flex flex-col items-center">

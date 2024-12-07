@@ -6,5 +6,5 @@ export function useStoredListings() {
         useState('listings').value = listings
     }
 
-    return { setStoredListings, storedListings: storedListings != undefined ? readonly(storedListings) : undefined }
+    return { setStoredListings, storedListings: storedListings !== undefined ? storedListings : undefined }
 } 

@@ -4,7 +4,9 @@ useHead({
     return titleChunk ? `${titleChunk} - House Seekers Hub` : 'House Seekers Hub';
   },
 })
-
+useSeoMeta({
+  ogSiteName: 'House Seekers Hub',
+})
 </script>
 <template>
   <NuxtLoadingIndicator />

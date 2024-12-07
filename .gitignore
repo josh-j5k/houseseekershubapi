@@ -18,6 +18,7 @@ logs
 .fleet
 .idea
 
+nuxt.config.ts
 # Local env files
 .env
 .env.*

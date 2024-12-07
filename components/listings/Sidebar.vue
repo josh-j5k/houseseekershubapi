@@ -4,8 +4,8 @@
 defineProps<{
     sidebarToggled: boolean,
 }>()
-
-const { location, locationSubmit, price, errors, status, propertyType, priceSubmit, propertySubmit, statusSubmit } = useListing()
+const emit = defineEmits(['locationSubmit', 'statusSubmit', 'propertySubmit', 'priceSubmit'])
+const { location, price, errors, status, propertyType } = useListing()
 
 const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 
@@ -20,13 +20,25 @@ function setLocation(e: string) {
     location.value = e
     closeSuggestion()
 }
-function submitPrice(ev: KeyboardEvent) {
+function locationSubmit() {
+    emit('locationSubmit')
+}
+function priceSubmit() {
+    emit('priceSubmit')
+}
+function propertySubmit() {
+    emit('propertySubmit')
+}
+function statusSubmit() {
+    emit('statusSubmit')
+}
+function keyboardSubmitPrice(ev: KeyboardEvent) {
 
     if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
         priceSubmit()
     }
 }
-function submitLocation(ev: KeyboardEvent) {
+function keyboardSubmitLocation(ev: KeyboardEvent) {
 
     if (ev.code === 'Enter' || ev.code === 'NumpadEnter') {
         locationSubmit()
@@ -41,7 +53,7 @@ function submitLocation(ev: KeyboardEvent) {
             <h2 class="capitalize font-bold text-2xl mb-4">location</h2>
             <label for="location" class="sr-only">location</label>
             <div class="flex gap-3 relative">
-                <input @keydown="submitLocation" @change="autocompleteLocation" v-model="location"
+                <input @keydown="keyboardSubmitLocation" @change="autocompleteLocation" v-model="location"
                     :class="errors.locationError && 'border-red-500'" class="input bg-transparent" type="text" name=""
                     id="location" placeholder="Type your town, region">
                 <button @click="locationSubmit" type="button" title="submit location"><i
@@ -84,12 +96,12 @@ function submitLocation(ev: KeyboardEvent) {
         <div>
             <h2 class="capitalize font-bold text-2xl mb-4">Price</h2>
             <div class="flex gap-3 items-center">
-                <input @keydown="submitPrice" :class="errors.priceError && 'border-red-500'"
+                <input @keydown="keyboardSubmitPrice" :class="errors.priceError && 'border-red-500'"
                     class="input bg-transparent" v-model="price.min" placeholder="min" type="text" size="7" name="min"
                     id="price-min">
                 <label for="price-min" class="sr-only"> Minimum price</label>
                 <span>To</span>
-                <input @keydown="submitPrice" :class="errors.priceError && 'border-red-500'"
+                <input @keydown="keyboardSubmitPrice" :class="errors.priceError && 'border-red-500'"
                     class="input bg-transparent" v-model="price.max" placeholder="max" size="7" type="text" name="max"
                     id="price-max">
                 <label for="price-max" class="sr-only"> Maximum price</label>

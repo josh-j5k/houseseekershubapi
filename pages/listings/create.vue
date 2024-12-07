@@ -118,14 +118,35 @@ onUnmounted(() => {
     document.removeEventListener('dragover', dragover)
 
 })
+const title = 'Post A Listing'
+const description = "Join hundreds of others and add your property for rent or for sale"
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/listings/create',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image',
+    title: title.concat(" | House Seekers Hub"),
+    description: description
+})
 </script>
 
 
 <template>
 
-    <Head>
-        <title>Post a listing</title>
-    </Head>
+
     <!-- <Preloader /> -->
 
     <section

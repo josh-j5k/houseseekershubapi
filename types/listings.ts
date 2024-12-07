@@ -17,13 +17,18 @@ export type SingleListing = {
     listing: Listing
 }
 export type Listings = {
-    data: Array<Listing>,
+    listings: Array<Listing>,
     hasMorePages: boolean,
 
 }
 export type form = {
-    location?: string,
-    status?: string,
-    price?: string,
+    title: string,
+    description: string,
+    price: string | number,
+    location: string,
+    property_status: string,
     property_type: string,
+    deletedImages: string[],
+    inputFiles: File[]
 }
+export type ListingsResponse = { status: string, message: string, data: { listings: Listing[], hasMorePages: boolean } }

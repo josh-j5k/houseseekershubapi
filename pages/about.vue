@@ -1,8 +1,31 @@
+<script setup lang="ts">
+const title = 'About Us'
+const description = "We display thousands of new properties for sale or rent. You can search for Cameroonian residential properties, and also thousands of overseas properties."
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/about',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image',
+    title: title.concat(" | House Seekers Hub"),
+    description: description
+})
+</script>
+
 <template>
 
-    <Head>
-        <title>About Us | House Seekser's Hub</title>
-    </Head>
 
     <section class="p-8 md:px-16 text-gray-600 md:pb-52 pt-12">
         <div>
@@ -15,7 +38,8 @@
                     appear on Rightmove or Zoopla, giving you a competitive edge in your search for your next home.
                 </p>
                 <p>
-                    As well as CMR residential properties, you can also search thousands of overseas properties for sale
+                    As well as Cameroonian residential properties, you can also search thousands of overseas properties
+                    for sale
                     and commercial CMR properties to rent and for sale, all from the comfort of your sofa or, by using
                     our mobile app, when you’re on-the-go.
                 </p>
