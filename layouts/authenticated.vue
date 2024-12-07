@@ -36,9 +36,9 @@ onUnmounted(() => {
                 <div class="lg:grid lg:grid-cols-[15%_85%]">
                     <div
                         class="lg:border-l lg:min-h-screen -lg:w-full -lg:fixed z-10 bottom-0 shadow lg:p-2 bg-gradient-to-br from-slate-100 to-blue-300 flex lg:flex-col bg- lg:gap-4 -lg:justify-evenly">
-                        <h1 class="w-16 aspect-square lg:mb-20 -lg:hidden">
-                            House seekers
-                        </h1>
+                        <div class="lg:mb-20 pt-8 flex justify-center">
+                            <ApplicationLogo class="w-36 -md:hidden" type="dark" />
+                        </div>
                         <NuxtLink :to="{ name: 'au-id', params: { id: authUser.user.ref } }"
                             class=" py-2 px-3 flex -lg:flex-col lg:gap-3 rounded"
                             :class="[$route.name == 'au-id' ? 'bg-slate-100 shadow-sm text-black font-bold' : 'text-gray-600']">
@@ -91,7 +91,8 @@ onUnmounted(() => {
                     <div>
                         <div class="border-b w-full flex justify-between items-center px-8 py-4">
                             <div>
-                                <div class="flex items-center gap-1 font-bold">
+                                <ApplicationLogo class="w-24 md:hidden" type="dark" />
+                                <div class="flex items-center gap-1 font-bold -md:hidden">
                                     <span>
 
                                         Hi,
@@ -107,15 +108,17 @@ onUnmounted(() => {
 
                             </div>
                             <div class="flex gap-2 items-center">
+
                                 <button type="button" title="New listing" @click=" $router.push('/listings/create')"
-                                    class="text-white -md:text-accent -md:text-2xl md:hover:bg-accent-hover md:bg-accent flex items-center justify-center gap-2 h-8 w-28 -md:w-6 -md:aspect-square -md:h-6 -md:rounded-full rounded-md text-sm ">
-                                    <span class="-md:w-full -md:h-full -md:flex -md:items-center -md:justify-center">
+                                    class="text-white -md:text-accent -md:text-2xl md:hover:bg-accent-hover md:bg-accent flex items-center justify-center gap-2 h-8 w-28 -md:fit -md:aspect-square -md:h-6 -md:rounded-full rounded-md text-sm ">
+                                    <span class="">
                                         <i class="fas fa-circle-plus aspect-square "></i>
                                     </span>
-                                    <span class="capitalize -md:hidden">
+                                    <span class="capitalize text-sm">
                                         new listing
                                     </span>
                                 </button>
+
                                 <div class=" relative">
 
                                     <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle"

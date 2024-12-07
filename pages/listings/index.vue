@@ -6,14 +6,16 @@ import { type Listings } from '@/types/listings'
 
 // const { usePlaces, inputValue } = useGoogleMaps()s
 
-const { loading, listings, init, removeFilter, loadMore } = useListing()
-const storeListings = useState('listings').value as Listings | undefined
+const { loading, listings, init, removeFilter, loadMore, decodeQuery } = useListing()
+const { setStoredListings, storedListings } = useStoredListings()
 
 const page = ref(1)
 const per_page = ref('16')
 const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
 const loadmore = ref(false)
+
+
 const filter = computed(() => {
     let arr = <string[]>[]
     for (const key in useRoute().query) {
@@ -27,8 +29,31 @@ const filter = computed(() => {
     }
     return arr
 })
+if (storedListings == undefined) {
+    const query = decodeQuery()
+    const response = await useFetch('/api/listings', {
+        query: query,
+        lazy: true
 
-storeListings == undefined ? init() : listings.value = storeListings
+    })
+    loading.value = false
+    if (response.error.value == null) {
+        const data = response.data.value as unknown as { status: string, message: string, data: Listings }
+        console.log(data);
+
+
+        // if (Object.keys(query).length == 0) {
+        //     setStoredListings(data.data)
+        //     listings.value = data.data
+        // } else {
+        listings.value = data.data
+        // }
+        // console.log(listings.value);
+
+    }
+}
+
+
 
 onMounted(() => {
     const target = document.getElementById("loadmore")!;
@@ -44,7 +69,7 @@ onMounted(() => {
     const observer = new IntersectionObserver(function (e) {
         const intersection = e[0]
 
-        if (intersection.isIntersecting && (listings.value.hasMorePages || storeListings?.hasMorePages)) {
+        if (intersection.isIntersecting && (listings.value.hasMorePages || storedListings?.hasMorePages)) {
             page.value++
             moreListing()
         }
@@ -56,14 +81,12 @@ onMounted(() => {
 
 <template>
 
-    <Head title="Listings" />
-
     <section class="min-h-screen w-full overflow-x-hidden relative "
         :class="[sidebarToggled ? 'sidebar' : '', listings.data && listings.data.length > 0 ? 'bg-gray-200' : 'bg-white']">
         <div class="grid lg:grid-cols-[25%_75%] min-h-screen grid-cols-1 -md:gap-4">
             <ListingsSidebar :sidebar-toggled="sidebarToggled" />
             <div>
-                <!-- <div class="text-center text-3xl text-green-600">{{ stat }}</div> -->
+
                 <div class="">
                     <div class=" md:w-[90%] mx-auto -md:px-8 bg-gray-100 mt-8 p-4">
                         <div class="flex relative -md:justify-end justify-between items-center">
@@ -135,7 +158,7 @@ onMounted(() => {
                             </template>
                         </div>
                     </div>
-                    <template v-if="storeListings == undefined ? loading : false">
+                    <template v-if="storedListings == undefined ? loading : false">
                         <div
                             class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3 grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ">
                             <template v-for="_ in 24">
@@ -150,7 +173,7 @@ onMounted(() => {
                         </div>
                     </template>
                     <template v-else>
-                        <template v-if="listings.data.length > 0">
+                        <template v-if="listings.data && listings.data.length > 0">
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
                                 <template v-for="(listing) in listings.data">

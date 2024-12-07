@@ -42,9 +42,7 @@ onUnmounted(() => {
     <header class="h-24 w-full flex flex-col z-[9990] justify-center lg:px-16 px-8 overflow-x-hidden"
         :class="$route.name === 'index' ? 'absolute inset-0 bg-transparent text-white' : 'bg-white text-black relative shadow'">
         <div class=" lg:grid lg:grid-cols-[20%_80%] grid-cols-2 -lg:flex -lg:justify-between items-center">
-            <h1>
-                House seekers hub
-            </h1>
+            <ApplicationLogo class=" w-44" :type="$route.name === 'index' ? 'white' : 'indigo'" />
             <button id="nav-toggle" type="button" @click="navToggle" class="lg:hidden z-[990] relative "
                 :class="toggled ? 'text-black' : 'text-white'" title="nav toggle" aria-controls="primary-nav"
                 :aria-expanded="toggled" aria-haspopup="true">
@@ -173,10 +171,12 @@ onUnmounted(() => {
         <hr class="w-[80%] h-[1px] mx-auto bg-white opacity-20 mt-4 -lg:hidden"
             :class="[$route.name === 'index' ? '' : 'hidden']">
     </header>
-    <!-- Mobile hamburger menu -->
-    <HeaderHambugerMenu :dropdown-toggled :user="user" />
 
 
+    <ClientOnly>
+        <!-- Mobile hamburger menu -->
+        <HeaderHambugerMenu :dropdown-toggled :user="user" />
+    </ClientOnly>
 </template>
 
 <style scoped>

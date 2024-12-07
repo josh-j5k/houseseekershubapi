@@ -24,7 +24,7 @@ const pagesToShowFooterBanner = ['index', 'contact', 'about']
             </div>
             <div class="w-[90%] mx-auto grid py-20 grid-cols-1 lg:grid-cols-[30%_20%_20%_30%] gap-8">
                 <div>
-                    <h1>House seekers hub</h1>
+                    <ApplicationLogo class="w-40" type="blue" />
                     <p class="text-sm mt-4">
                         Every property you see advertised with us is on the market with full-service estate or letting
                         agents

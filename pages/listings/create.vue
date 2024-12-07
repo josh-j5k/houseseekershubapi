@@ -7,9 +7,10 @@ import toast from '~/utils/toastNotification';
 const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, filesArr } = useFileUpload()
 const { formErrors, validation } = useListingFormValidator()
 const { closeSuggestion, handleRequest, suggestions } = usePlaces()
+
 const user = useState('user').value as user
 
-const form = reactive({
+const form = ref({
     title: '',
     property_status: 'rent',
     price: '',
@@ -20,7 +21,16 @@ const form = reactive({
 
 })
 
+const initialFormValue = {
+    title: '',
+    property_status: 'rent',
+    price: '',
+    location: '',
+    description: '',
+    property_type: '',
+    inputFiles: <File[]>[]
 
+}
 const currentIndex = ref(0)
 
 function fileUpload(e: MouseEvent) {
@@ -30,17 +40,17 @@ function fileUpload(e: MouseEvent) {
 
 }
 async function autocompleteLocation() {
-    if (form.location.length > 0) {
-        await handleRequest(form.location)
+    if (form.value.location.length > 0) {
+        await handleRequest(form.value.location)
 
     }
 }
 function setLocation(e: string) {
-    form.location = e
+    form.value.location = e
     closeSuggestion()
 }
 function setToPascalCase() {
-    form.title = form.title.trim().split(' ').map(item => item.charAt(0).toUpperCase().concat(item.substring(1))).join(' ')
+    form.value.title = form.value.title.trim().split(' ').map(item => item.charAt(0).toUpperCase().concat(item.substring(1))).join(' ')
 }
 function removePhoto(ev: MouseEvent) {
     const fileInput = document.querySelector('#file_upload') as HTMLInputElement
@@ -64,31 +74,28 @@ function nextPic() {
     }
 }
 
-function submit() {
-    form.title.trim()
-    form.description.trim()
-    form.inputFiles = filesArr.value
+async function submit() {
+    const { handleRequest } = useBackend()
+    form.value.title.trim()
+    form.value.description.trim()
+    form.value.inputFiles = filesArr.value
 
 
     if (user == undefined) {
         return toast('Error', 'You need to be logged in to perform this action')
     }
-    if (validation(form.title, form.description, form.property_type, form.price, form.property_status, form.location, total.value)) {
-        console.log(form)
-        // form.post(route('listings.index'), {
-        //     preserveScroll: true,
-        //     onSuccess: () => {
-        //         toast('Success', 'Listing added successfully')
-        //         form.reset('description', 'inputFiles', 'location', 'price', 'property_status', 'property_type', 'title')
-        //         const file_upload = document.getElementById('file_upload') as HTMLInputElement
-        //         const newDt = new DataTransfer()
-        //         file_upload.files = newDt.files
-        //         imgSrc.value = []
-        //         filesArr.value = <File[]>[]
-        //         total.value = 0
+    if (validation(form.value, total.value)) {
 
-        //     },
-        // })
+        const { data, error } = await handleRequest('post', '/listings/store', form.value, 'multpartForm')
+        if (!error) {
+            toastNotification('Success', 'Listing added successfully')
+            form.value = initialFormValue
+            imgSrc.value.length = 0
+            filesArr.value.length = 0
+            total.value = 0
+        } else {
+            toastNotification('Error', data.message)
+        }
     }
 }
 
@@ -105,10 +112,6 @@ onMounted(() => {
     dropbox.addEventListener("dragenter", dragenter, false);
     dropbox.addEventListener("dragover", dragover, false);
     dropbox.addEventListener("drop", dropEnter, false);
-
-    const locationInput = document.getElementById('property_location') as HTMLInputElement
-    // usePlaces(locationInput, locationInput.value)
-
 })
 onUnmounted(() => {
     document.removeEventListener('dragenter', dragenter)

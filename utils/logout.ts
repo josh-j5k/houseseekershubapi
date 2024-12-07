@@ -7,12 +7,9 @@ export default async function () {
             navigateTo('/login')
         }
         localStorage.removeItem('user')
-
-        clearNuxtState(['user', 'listings', "userListings"])
-
+        clearNuxtState()
         toastNotification("Success", "Logout Successful")
     } else {
-        console.log(data);
         toastNotification("Error", data.message)
     }
 }

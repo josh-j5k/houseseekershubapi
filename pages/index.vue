@@ -3,37 +3,36 @@ import type { Listings, Listing } from '~/types/listings';
 
 const { handleRequest } = useBackend();
 const loading = ref(false)
-const listings = ref(<Listings>{})
+const listings = ref(<Listings>{
+    data: <Listing[]>[]
+})
 
-const storeListings = useState('listings').value as Listings | undefined
-storeListings !== undefined ? listings.value.data = storeListings.data.slice(0, 4) : ''
-const options = {
-    componentRestrictions: { country: "cm" },
-    strictBounds: false,
-};
+const { storedListings } = useStoredListings()
 
-const input = ref('input')
+
 const form = reactive({
     status: 'any',
     location: '',
     property_type: ''
 })
-const formError = ref(false)
-function validate(): boolean {
-    if (form.location.length === 0 || form.property_type.length === 0) {
-        formError.value = true
-        return false
-    } else {
-        return true
+
+async function submit() {
+    if (form.status == 'any' && form.location.length == 0 && form.property_type.length == 0) {
+        return
     }
-}
-function submit() {
-    if (validate()) {
-        console.log('validated')
+    let query = {} as any
+    for (const [key, value] of Object.entries(form)) {
+        if (value.length !== 0 && value !== 'any') {
+            query[key] = value
+        }
     }
+    await navigateTo({
+        path: '/listings',
+        query: query
+    })
 }
 (async function () {
-    if (storeListings == undefined) {
+    if (storedListings == undefined) {
         loading.value = true
         const { data, error } = await handleRequest('get', '/listings?limit=4')
         if (!error) {
@@ -44,31 +43,28 @@ function submit() {
         loading.value = false
     }
 })()
-
-onMounted(() => {
-    const locationInput = <HTMLInputElement>document.getElementById('location')
-    // usePlaces(locationInput, form.location)
-    // loader.importLibrary('places').then(res => {
-
-    //     const autocomplete = new res.Autocomplete(locationInput, options)
-
-    //     autocomplete.addListener('place_changed', () => {
-    //         const place = autocomplete.getPlace()
-    //         form.location = place.formatted_address
-
-    //     })
-
-    // })
-
+const title = "House, properties to rent and for sale"
+const description = "Find the perfect house for you only on house seekers hub. A marketplace where users can rent or sell houses"
+useSeoMeta({
+    ogImage: {
+        url: '/og image',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image'
+    },
+    ogDescription: description,
+    ogSiteName: 'House Seekers Hub',
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image',
+    title: title.concat(" | House Seekers Hub"),
+    description: description
 })
-
-
 </script>
 <template>
 
-    <Head>
-        <title>House, properties to rent and for sale</title>
-    </Head>
 
     <section class="relative h-screen w-full isolate flex flex-col items-center justify-center px-2">
         <div
@@ -110,8 +106,8 @@ onMounted(() => {
                         Location
                     </label>
                     <div class="flex items-center gap-4 w-full relative">
-                        <input required v-model="form.location" type="text" placeholder="Type your town, region"
-                            id="location" class="input">
+                        <input v-model="form.location" type="text" placeholder="Type your town, region" id="location"
+                            class="input">
                         <span class="absolute right-2"><i class="fas fa-map"></i></span>
                     </div>
                 </div>
@@ -121,7 +117,7 @@ onMounted(() => {
                         Property Type
                     </label>
                     <div class="flex items-center gap-4 w-full relative">
-                        <select required v-model="form.property_type" id="property-type" class="input appearance-none">
+                        <select v-model="form.property_type" id="property-type" class="input appearance-none">
                             <option value="" disabled>Please select an option</option>
                             <option value="room">
                                 Room
@@ -144,7 +140,7 @@ onMounted(() => {
                     <span><i class="fas fa-search fa-xl"></i></span>
                 </button>
             </div>
-            <p v-if="formError" class="text-red-500 capitalize text-center font-bold">please fill all fields</p>
+
         </form>
     </section>
     <section class="py-8 w-full lg:min-h-screen grid">
@@ -191,7 +187,7 @@ onMounted(() => {
                 </NuxtLink>
             </div>
             <div class="px-8 grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-3 md:translate-y-[5%]">
-                <template v-if="storeListings == undefined ? loading : false">
+                <template v-if="storedListings == undefined ? loading : false">
                     <template v-for="(_, index) in 4">
                         <Card class="bg-white relative">
                             <div class="flex flex-col items-center gap-3">
@@ -208,7 +204,7 @@ onMounted(() => {
                     </template>
                 </template>
                 <template v-else>
-                    <template v-for="(listing, index) in listings.data">
+                    <template v-for="(listing, index) in storedListings?.data ? storedListings.data : listings.data">
                         <Card class="bg-white relative">
                             <img lazy :src="listing.images[0]" alt="listing image" class="w-full aspect-square">
                             <div class="p-4">

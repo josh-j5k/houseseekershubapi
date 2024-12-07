@@ -4,49 +4,38 @@ import type { user } from '~/types/user';
 definePageMeta({
     layout: 'full-page'
 })
-
+type response = { status: string, message: string, data: { listing: Listing, canShare: string, bookmark: boolean } }
 const showMessage = ref(false)
-const pageTitle = ref()
-
-useHead({
-    title: pageTitle.value
-})
 const messageInput = ref('')
-const bookmark = ref(false)
 const authorized = ref(<string | null>null)
-const loading = ref(true)
+const data = ref(<response>{
+})
+
 const { handleRequest } = useBackend()
 const { assignFiles, imgSrc } = useFileUpload()
-const listing = ref(<Listing>{})
+
 const chatLoading = ref(true)
 const currentIndex = ref(0)
 const chats = ref(<null | any>null)
 const authUser = ref(<user | undefined>undefined)
 
-function prevPic() {
-    currentIndex.value--
-    if (currentIndex.value < 0) {
-        currentIndex.value = listing.value.images?.length - 1
+const response = await useFetch('/api/listings/'.concat(useRoute().params.listing.toString()))
 
+if (response.error.value == null) {
+    data.value = response.data.value as response
+
+    useHead({
+        title: data.value.data.listing.title
+    })
+    if (import.meta.client) {
+        authUser.value = JSON.parse(localStorage.getItem('user')!)
+        if (authUser.value && data.value) {
+            authUser.value.user.ref !== data.value.data.canShare ? authorized.value = data.value.data.canShare : ''
+
+        }
     }
 }
 
-(async function () {
-    const { data, error } = await handleRequest('get', '/listings/'.concat(useRoute().params.listing.toString()))
-    if (!error) {
-        listing.value = data.data.listing
-        bookmark.value = data.data.bookmark
-        pageTitle.value = listing.value.title
-        if (import.meta.client) {
-            const user = JSON.parse(localStorage.getItem('user')!) as user | undefined
-            if (user) {
-                user.user.ref !== data.data.canShare ? authorized.value = data.data.canShare : ''
-
-            }
-        }
-    }
-    loading.value = false
-})()
 function share() {
     navigator.clipboard.writeText(location.href)
     toastNotification('Success', 'Linked copied to clipboard')
@@ -80,8 +69,10 @@ async function sendMessage() {
     chats.value.messages["Today"].at(-1).content.time = data.data
 
 }
-if (import.meta.client) {
-    authUser.value = JSON.parse(localStorage.getItem('user')!)
+
+function closeMessageBox() {
+    document.documentElement.style.overflow = 'auto'
+    showMessage.value = false
 }
 // Fetch chat messages
 async function getChats() {
@@ -109,38 +100,44 @@ function uploadPicture() {
     input.click()
 }
 async function setBookmark() {
-    const { error } = await handleRequest('post', '/bookmark/' + listing.value.id)
+    const { error } = await handleRequest('post', '/bookmark/' + data.value.data.listing.id)
     if (!error) {
 
-        if (bookmark.value) {
+        if (data.value.data.bookmark) {
             toastNotification('Success', 'Bookmark removed')
         } else {
             toastNotification('Success', 'Bookmark added')
         }
-        bookmark.value = !bookmark.value
+        data.value.data.bookmark = !data.value.data.bookmark
     }
 }
-function closeMessageBox() {
-    document.documentElement.style.overflow = 'auto'
-    showMessage.value = false
+function prevPic() {
+    currentIndex.value--
+    if (currentIndex.value < 0) {
+        currentIndex.value = data.value.data.listing.images?.length - 1
+
+    }
 }
+
+
 function nextPic() {
     currentIndex.value++
-    if (currentIndex.value > listing.value.images?.length - 1) {
+    if (currentIndex.value > data.value.data.listing.images?.length - 1) {
         currentIndex.value = 0
     }
 }
 
-</script>
 
+</script>
 <template>
 
 
-    <template v-if="loading">
-        <Preloader />
+    <template v-if="Object.keys(data).length === 0">
+        <div class="flex justify-center items-center text-3xl pt-16 font-bold">
+            No listing found
+        </div>
     </template>
     <template v-else>
-
         <!-- <Head :title="listing.title.concat(' | House Seeekers Hub')" /> -->
         <section class="md:h-screen min-h-screen w-full overflow-x-hidden">
             <CloseButton route-name="/listings" position="top-8 left-8" />
@@ -149,13 +146,13 @@ function nextPic() {
                     class="min-h-screen isolate relative before:content-emptystring before:absolute before:w-full before:h-full before:inset-0 before:bg-[rgba(0,_0,_0,_0.2)] overflow-clip before:-z-10 flex justify-center items-center bg-slate-500">
                     <!-- backdrop background -->
                     <div class="w-full h-full absolute">
-                        <img :src="listing.images[currentIndex]" alt="listing image"
+                        <img :src="data.data.listing.images[currentIndex]" alt="listing image"
                             class="w-full h-full object-cover absolute inset-0 blur-lg -z-20">
                     </div>
                     <!-- listing image -->
                     <div>
-                        <a :href="listing.images[currentIndex]" target="_blank">
-                            <img :src="listing.images[currentIndex]" alt="listing image" class="max-w-lg">
+                        <a :href="data.data.listing.images[currentIndex]" target="_blank">
+                            <img :src="data.data.listing.images[currentIndex]" alt="listing image" class="max-w-lg">
                         </a>
                     </div>
                     <button @click="prevPic" type="button" title="click to get previous image"
@@ -170,9 +167,9 @@ function nextPic() {
                             <i class="fas fa-chevron-right"></i>
                         </span>
                     </button>
-                    <div v-if="listing.images.length > 0"
+                    <div v-if="data.data.listing.images.length > 0"
                         class="absolute flex gap-2 overflow-x-auto overflow-y-hidden py-1 mx-auto bottom-2 z-10 bg-[rgba(255,_255,_255,_0.1)] justify-center w-full h-16">
-                        <template v-for="(item, index) in listing.images">
+                        <template v-for="(item, index) in data.data.listing.images">
                             <img @click="currentIndex = index" :src="item" alt=""
                                 class="w-20 aspect-square object-cover cursor-pointer"
                                 :class="[index === currentIndex ? 'border-2 border-blue-500' : '']">
@@ -182,14 +179,14 @@ function nextPic() {
                 <div class="bg-white py-12 px-8 shadow md:h-screen overflow-y-auto relative">
                     <div>
                         <h1 class="capitalize font-bold text-3xl mb-3">
-                            {{ listing.title }}
+                            {{ data.data.listing.title }}
                         </h1>
                         <p class="font-bold flex gap-1 text-sm text-accent">
                             <span>
-                                <span>{{ listing.price.toLocaleString('en-US', {
+                                <span>{{ data.data.listing.price.toLocaleString('en-US', {
                                     style: 'currency',
                                     currency: 'XAF'
-                                }) }} {{ listing.propertyStatus === 'rent' ? '/Month' : '' }}</span>
+                                }) }} {{ data.data.listing.propertyStatus === 'rent' ? '/Month' : '' }}</span>
                             </span>
 
                         </p>
@@ -198,7 +195,7 @@ function nextPic() {
                                 Property for
                             </span>
                             <span>
-                                {{ listing.propertyStatus }}
+                                {{ data.data.listing.propertyStatus }}
                             </span>
                         </p>
 
@@ -219,7 +216,7 @@ function nextPic() {
                                 @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark" type="button"
                                 title="bookmark" class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg"
                                 :class="[authorized == null || authorized === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
-                                <span v-if="bookmark">
+                                <span v-if="data.data.bookmark">
                                     <i class="fa-solid fa-bookmark text-blue-300"></i>
                                 </span>
                                 <span v-else>
@@ -240,13 +237,13 @@ function nextPic() {
                     <hr class="w-full bg-slate-300 my-4">
                     <div class="pb-4">
                         <p class="font-bold text-lg mb-1"> Location</p>
-                        <p class="text-sm">{{ listing.location }}</p>
+                        <p class="text-sm">{{ data.data.listing.location }}</p>
                     </div>
                     <hr class="w-full bg-slate-300 my-4">
                     <h2 class="font-bold text-lg mb-4">
                         Description
                     </h2>
-                    <p>{{ listing.description }}</p>
+                    <p>{{ data.data.listing.description }}</p>
 
                     <!-- message box -->
                     <div v-if="showMessage"

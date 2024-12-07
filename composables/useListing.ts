@@ -1,9 +1,11 @@
 import type { LocationQuery, LocationQueryValue } from 'vue-router';
-import type { Listings } from '~/types/listings';
+import type { Listing, Listings } from '~/types/listings';
 
 
 const loading = ref(true)
-const listings = ref(<Listings>{})
+const listings = ref(<Listings>{
+    data: <Listing[]>[]
+})
 const { handleRequest } = useBackend()
 const location = ref(<string | null>null)
 const errors = reactive({
@@ -29,41 +31,11 @@ async function getListings(query: any) {
     if (!error) {
         listings.value.data = data.data.listings
         listings.value.hasMorePages = data.data.hasMorePages
-        useState('listings', () => listings.value)
+
     }
     loading.value = false
 }
-function decodeQuery() {
-    const query = useRoute().query
-    const decodedQuery = <LocationQuery>{}
 
-    for (const key in query) {
-        const value = query[key]
-        const decoded = decodeURIComponent(value?.toString()!)
-        decodedQuery[key] = decoded
-        if (key == 'status') {
-            status.value = decoded
-        }
-        if (key == 'location') {
-            location.value = decoded
-        }
-        if (key == 'price') {
-            const arr = decoded.split('|')
-            arr?.forEach(item => {
-                if (item.startsWith('over')) {
-                    price.value.min = item.substring(4)
-                } else {
-                    price.value.max = item.substring(4)
-                }
-            })
-        }
-        if (key == 'property_type') {
-            propertyType.value = decoded.split('|')!
-        }
-    }
-    decodedQuery['limit'] = perPage.value
-    return decodedQuery
-}
 async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
     const encoded = encodeURIComponent(value?.toString()!)
     const query = useRoute().query
@@ -85,6 +57,66 @@ async function submit(name: string, value: LocationQueryValue | LocationQueryVal
 
 
 export function useListing() {
+    function encodeQuery() {
+        const query = useRoute().query
+        const encodedQuery = <LocationQuery>{}
+
+        for (const key in query) {
+            const value = query[key]
+            const decoded = decodeURIComponent(value?.toString()!)
+            encodedQuery[key] = decoded
+            if (key == 'status') {
+                status.value = decoded
+            }
+            if (key == 'location') {
+                location.value = decoded
+            }
+            if (key == 'price') {
+                const arr = decoded.split('|')
+                arr?.forEach(item => {
+                    if (item.startsWith('over')) {
+                        price.value.min = item.substring(4)
+                    } else {
+                        price.value.max = item.substring(4)
+                    }
+                })
+            }
+            if (key == 'property_type') {
+                propertyType.value = decoded.split('|')!
+            }
+        }
+        return encodedQuery
+    }
+    function decodeQuery() {
+        const query = useRoute().query
+        const decodedQuery = <LocationQuery>{}
+
+        for (const key in query) {
+            const value = query[key]
+            const decoded = decodeURIComponent(value?.toString()!)
+            decodedQuery[key] = decoded
+            if (key == 'status') {
+                status.value = decoded
+            }
+            if (key == 'location') {
+                location.value = decoded
+            }
+            if (key == 'price') {
+                const arr = decoded.split('|')
+                arr?.forEach(item => {
+                    if (item.startsWith('over')) {
+                        price.value.min = item.substring(4)
+                    } else {
+                        price.value.max = item.substring(4)
+                    }
+                })
+            }
+            if (key == 'property_type') {
+                propertyType.value = decoded.split('|')!
+            }
+        }
+        return decodedQuery
+    }
     async function loadMore(page: string) {
 
         const decodedQuery = decodeQuery()
@@ -210,7 +242,7 @@ export function useListing() {
     }
 
     return {
-        loading: readonly(loading),
+        loading,
         listings,
         location,
         errors: readonly(errors),
@@ -220,6 +252,8 @@ export function useListing() {
         locationSubmit,
         removeFilter,
         init,
-        loadMore
+        loadMore,
+        decodeQuery,
+        encodeQuery
     }
 }
