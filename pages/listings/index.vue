@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 import type { LocationQuery, LocationQueryValue } from 'vue-router';
 import type { ListingsResponse, Listing } from '@/types/listings'
 
@@ -30,13 +31,12 @@ const filter = computed(() => {
 })
 
 if (storedListings == undefined) {
-    const response = await useLazyFetch('/api/listings', {
-        query
+    const response = await useFetch('/api/listings', {
+        query,
     })
 
-    if (response.error.value == null) {
+    if (response.status.value == 'success' && response.error.value == null) {
         const data = response.data.value as unknown as ListingsResponse
-
         if (Object.keys(query).length == 0) {
             setStoredListings(data.data)
             listings.value = data.data.listings
@@ -286,7 +286,7 @@ useSeoMeta({
                             <div class="mt-8 w-[90%] mx-auto grid pb-8 transition-all gap-3"
                                 :class="[activeGrid === 'grid' ? 'grid-cols-4 -md:grid-cols-2 -sm:grid-cols-1 ' : 'grid-cols-1']">
                                 <template v-for="(listing) in listings">
-                                    <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.ref } }">
+                                    <NuxtLink :to="{ name: 'listings-listing', params: { listing: listing.slug } }">
                                         <Card class="bg-white relative"
                                             :class="activeGrid === 'tiles' ? 'flex gap-4' : ''">
 

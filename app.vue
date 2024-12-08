@@ -7,6 +7,7 @@ useHead({
 useSeoMeta({
   ogSiteName: 'House Seekers Hub',
 })
+
 </script>
 <template>
   <NuxtLoadingIndicator />

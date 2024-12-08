@@ -30,7 +30,7 @@ async function submit() {
     })
 }
 if (storedListings == undefined) {
-    const response = await useLazyFetch('/api/listings', {
+    const response = await useFetch('/api/listings', {
         query: {
             limit: 4
         }

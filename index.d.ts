@@ -1,5 +1,8 @@
 declare module 'nuxt/schema' {
     interface RuntimeConfig {
+
+    }
+    interface PublicRuntimeConfig {
         apiUrl: string,
         frontendUrl: string,
         googleClientId: string,
@@ -9,8 +12,6 @@ declare module 'nuxt/schema' {
         googleOauth2CallbackUrl: string,
         googlePlaces: string,
         googlePlacesApiKey: string
-    }
-    interface PublicRuntimeConfig {
     }
 }
 // It is always important to ensure you import/export something when augmenting a type

@@ -1,13 +1,14 @@
 export default async function () {
     const { handleRequest } = useBackend()
-    const { error, data } = await handleRequest('post', '/logout')
+
+    const { data, error } = await handleRequest('post', '/logout')
 
     if (!error) {
         if (useRoute().meta.middleware !== undefined) {
             navigateTo('/login')
         }
         localStorage.removeItem('user')
-        clearNuxtState()
+        clearNuxtState(['user', 'listings', 'userListings'])
         toastNotification("Success", "Logout Successful")
     } else {
         toastNotification("Error", data.message)

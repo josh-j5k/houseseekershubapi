@@ -5,7 +5,7 @@ export type suggestions = Array<{
 export type Listing = {
     id: string
     description: string,
-    ref: string,
+    slug: string,
     location: string,
     price: number,
     propertyStatus: string,

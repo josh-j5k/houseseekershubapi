@@ -53,13 +53,15 @@ export default function useBackend() {
                 const value = query[key] as string;
                 url.searchParams.append(key, value)
             }
+        } else {
+
         }
         try {
             let res = null
             if (method !== 'get') {
                 options.withCredentials = true,
                     options.withXSRFToken = true
-                await axios.get(xsrfUrl.toString())
+                await getToken()
             }
             switch (method) {
                 case 'get':

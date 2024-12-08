@@ -13,8 +13,11 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    apiUrl: "http://localhost:8000",
-    frontendUrl: "http://localhost:3000",
+    public: {
+      apiUrl: "http://localhost:8000",
+      frontendUrl: "http://localhost:3000",
+
+    }
 
   }
 

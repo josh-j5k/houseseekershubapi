@@ -8,6 +8,7 @@ const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, files
 const { formErrors, validation } = useListingFormValidator()
 const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 
+const loading = ref(false)
 const user = useState('user').value as user
 
 const form = ref({
@@ -17,7 +18,7 @@ const form = ref({
     location: '',
     description: '',
     property_type: '',
-    inputFiles: <File[]>[]
+    inputFiles: <any>[]
 
 })
 
@@ -28,7 +29,7 @@ const initialFormValue = {
     location: '',
     description: '',
     property_type: '',
-    inputFiles: <File[]>[]
+    inputFiles: <any>[]
 
 }
 const currentIndex = ref(0)
@@ -78,13 +79,19 @@ async function submit() {
     const { handleRequest } = useBackend()
     form.value.title.trim()
     form.value.description.trim()
-    form.value.inputFiles = filesArr.value
+
 
 
     if (user == undefined) {
         return toast('Error', 'You need to be logged in to perform this action')
     }
+    const inputForm = <HTMLFormElement>document.getElementById('form')
+    const formData = new FormData(inputForm)
+    const file = formData.getAll('file_upload')
     if (validation(form.value, total.value)) {
+        loading.value = true
+        form.value.inputFiles = file
+        console.log(form.value.inputFiles);
 
         const { data, error } = await handleRequest('post', '/listings/store', form.value, 'multpartForm')
         if (!error) {
@@ -97,6 +104,7 @@ async function submit() {
             toastNotification('Error', data.message)
         }
     }
+    loading.value = false
 }
 
 onMounted(() => {
@@ -147,13 +155,17 @@ useSeoMeta({
 <template>
 
 
-    <!-- <Preloader /> -->
+    <template v-if="loading">
+        <Teleport to="teleports">
+            <Preloader />
+        </Teleport>
 
+    </template>
     <section
         class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center pt-0 gap-4">
         <div
             class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-16 lg:pt-28">
-            <form @submit.prevent="submit" enctype="multipart/form-data">
+            <form @submit.prevent="submit" id="form" enctype="multipart/form-data">
                 <div class="flex flex-col gap-4">
                     <div>
                         <p class="text-sm mb-2 flex items-center justify-center">
@@ -255,22 +267,31 @@ useSeoMeta({
                     <p v-if="formErrors.descriptionError" class="text-red-500">
                         Please enter a description.
                     </p>
-                    <button :disabled="user === undefined" type="submit" class="bg-accent py-3 px-6 text-white"
-                        :class="[user === undefined ? 'cursor-not-allowed opacity-90' : '']">
-                        Publish
-                    </button>
+                    <ClientOnly>
+                        <button :disabled="user === undefined" type="submit" class="bg-accent py-3 px-6 text-white"
+                            :class="[user === undefined ? 'cursor-not-allowed opacity-90' : '']">
+                            Publish
+                        </button>
+                        <template #fallback>
+                            <button type="submit" class="bg-accent py-3 px-6 text-white">
+                                Publish
+                            </button>
+                        </template>
+                    </ClientOnly>
                 </div>
             </form>
         </div>
         <div class="lg:col-start-2 lg:col-end-3">
             <div class="w-full lg:h-[90vh] m-auto overflow-hidden bg-white shadow rounded-md  p-4 pb-11">
-                <div v-if="user === undefined" class=" text-red-500 text center bg-white p-4">
-                    <p class="text-center">
-                        You need to be an authenticated user to
-                        publish a
-                        listing!
-                    </p>
-                </div>
+                <ClientOnly>
+                    <div v-if="user === undefined" class=" text-red-500 text center bg-white p-4">
+                        <p class="text-center">
+                            You need to be an authenticated user to
+                            publish a
+                            listing!
+                        </p>
+                    </div>
+                </ClientOnly>
                 <h2 class="font-bold py-2 text-lg">Preview</h2>
                 <div class="grid lg:grid-cols-[60%_40%] grid-cols-1 h-full w-full border rounded-md">
                     <div class="relative w-full h-[90%] overflow-hidden"

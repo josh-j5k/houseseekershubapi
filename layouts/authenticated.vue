@@ -40,7 +40,7 @@ onUnmounted(() => {
                             <ApplicationLogo class="w-36 -md:hidden" type="dark" />
                         </div>
                         <NuxtLink :to="{ name: 'au-id', params: { id: authUser.user.ref } }"
-                            class=" py-2 px-3 flex -lg:flex-col lg:gap-3 rounded"
+                            class=" py-2 md:hover:bg-slate-100 md:hover:shadow-sm px-3 flex -lg:flex-col lg:gap-3 rounded"
                             :class="[$route.name == 'au-id' ? 'bg-slate-100 shadow-sm text-black font-bold' : 'text-gray-600']">
                             <span class="-lg:text-2xl text-center">
                                 <i class="fas fa-home"></i>
@@ -50,7 +50,7 @@ onUnmounted(() => {
                             </span>
                         </NuxtLink>
                         <NuxtLink :to="{ name: 'au-id-messages', params: { id: authUser.user.ref } }"
-                            class="py-2 px-3 flex -lg:flex-col lg:gap-3 rounded"
+                            class="py-2 px-3 md:hover:bg-slate-100 md:hover:shadow-sm flex -lg:flex-col lg:gap-3 rounded"
                             :class="[$route.name == 'au-id-messages' ? 'bg-slate-100 shadow-sm text-black font-bold' : 'text-gray-600']">
                             <span class="-lg:text-2xl text-center">
                                 <i class="fas fa-message"></i>
@@ -60,7 +60,7 @@ onUnmounted(() => {
                             </span>
                         </NuxtLink>
                         <NuxtLink :to="{ name: 'au-id-bookmarks', params: { id: authUser.user.ref } }"
-                            class="py-2 px-3 flex -lg:flex-col lg:gap-3 rounded"
+                            class="py-2 px-3 md:hover:bg-slate-100 md:hover:shadow-sm flex -lg:flex-col lg:gap-3 rounded"
                             :class="[$route.name == 'au-id-bookmarks' ? 'bg-slate-100 shadow-sm text-black font-bold' : 'text-gray-600']">
                             <span class="-lg:text-2xl text-center">
                                 <i class="fas fa-bookmark"></i>
@@ -70,7 +70,7 @@ onUnmounted(() => {
                             </span>
                         </NuxtLink>
                         <NuxtLink :to="{ name: 'au-id-profile', params: { id: authUser.user.ref } }"
-                            class="py-2 px-3 flex -lg:flex-col lg:gap-3 rounded"
+                            class="py-2 px-3 md:hover:bg-slate-100 md:hover:shadow-sm flex -lg:flex-col lg:gap-3 rounded"
                             :class="[$route.name == 'au-id-profile' ? 'bg-slate-100 shadow-sm text-black font-bold' : 'text-gray-600']">
                             <span class="-lg:text-2xl text-center">
                                 <i class="fas fa-user"></i>
@@ -79,7 +79,8 @@ onUnmounted(() => {
                                 Profile
                             </span>
                         </NuxtLink>
-                        <NuxtLink @click="logout" class="py-2 px-3 text-gray-600 flex -lg:flex-col lg:gap-3 rounded">
+                        <NuxtLink @click="logout"
+                            class="py-2 px-3 md:hover:bg-slate-100 md:hover:shadow-sm text-gray-600 flex -lg:flex-col cursor-pointer lg:gap-3 rounded">
                             <span class="-lg:text-2xl text-center">
                                 <i class="fas fa-right-from-bracket"></i>
                             </span>

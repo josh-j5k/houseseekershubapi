@@ -1,8 +1,8 @@
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const query = getQuery(event)
-    const url = new URL('/api/listings', config.apiUrl)
+    const url = new URL('/api/listings', config.public.apiUrl)
     if (query.limit == null || query.limit == undefined) {
         url.searchParams.append('limit', '12')
     }
@@ -11,6 +11,6 @@ export default defineEventHandler((event) => {
             url.searchParams.append(key, value?.toString()!)
         }
     }
-    const data = fetch(url)
+    const data = await $fetch(url.toString())
     return data
 })

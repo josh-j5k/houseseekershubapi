@@ -5,6 +5,7 @@ import axios from 'axios';
 definePageMeta({
     middleware: 'authenticated'
 })
+const config = useRuntimeConfig()
 const { handleRequest, btnLoading } = useBackend()
 const loading = ref(false)
 const status = ref({
@@ -20,14 +21,14 @@ const form = reactive({
 const query = useRoute().query
 async function authenticateUser() {
     const bodyParams = {
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
-        redirect_uri: import.meta.env.VITE_GOOGLE_OAUTH2_CALLBACK_URL,
+        client_id: config.public.googleClientId,
+        client_secret: config.public.googleClientSecret,
+        redirect_uri: config.public.googleOauth2CallbackUrl,
         code: query.code,
         grant_type: "authorization_code"
     }
 
-    const response = await axios.post(import.meta.env.VITE_GOOGLE_OAUTH2_TOKEN, bodyParams, {
+    const response = await axios.post(config.public.googleOauth2Token, bodyParams, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
     })
 

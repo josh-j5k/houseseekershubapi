@@ -11,7 +11,7 @@ const listings = ref(<Listings>{})
 
 const currentIndex = ref(0)
 const loading = ref(true)
-const { validation, formErrors } = useListingFormValidator()
+const { validation } = useListingFormValidator()
 const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr } = useFileUpload()
 
 const { handleRequest, btnLoading } = useBackend()
@@ -237,8 +237,7 @@ onMounted(() => {
                                 <div>
                                     <img v-if="listing.images.length > 0" :src="listing.images[0]" alt=""
                                         class="max-w-[200px] aspect-square object-cover -md:max-w-[150px]">
-                                    <img v-else src="/Images/no_image_placeholder.jpg" alt=""
-                                        class="h-full object-cover max-w-[200px] -md:max-w-[150px]">
+
                                 </div>
                                 <div class="p-4">
                                     <p class="font-bold flex gap-1 mb-3 text-sm text-accent">
@@ -291,21 +290,15 @@ onMounted(() => {
                         <h2 class="mb-4 text-2xl font-bold">{{ listings.listings[currentIndex].title }}</h2>
                         <div class="grid grid-cols-[70%_30%] overflow-hidden gap-3 h-[390px]">
 
-                            <img v-if="listings.listings[currentIndex].images.length > 0"
-                                :src="listings.listings[currentIndex].images[mainImage]" alt=""
+                            <img :src="listings.listings[currentIndex].images[mainImage]" alt=""
                                 class="row-span-full aspect-square">
-                            <img v-else src="/Images/no_image_placeholder.jpg" alt=""
-                                class="w-96 rounded-3xl aspect-square">
+
                             <div class="flex flex-col gap-3 scrollbar_invisible overflow-y-auto">
-                                <template v-if="listings.listings[currentIndex].images.length > 0"
-                                    v-for="(image, index) in listings.listings[currentIndex].images">
+                                <template v-for="(image, index) in listings.listings[currentIndex].images">
                                     <img @click="mainImage = index" :src="image" alt=""
                                         class="w-36 aspect-square object-cover rounded-xl cursor-pointer">
                                 </template>
-                                <template v-else v-for="(image, index) in 3">
-                                    <img src="/Images/no_image_placeholder.jpg" alt=""
-                                        class="w-[124px] aspect-square object-cover rounded-xl">
-                                </template>
+
                             </div>
                         </div>
                         <p class="mt-3 text-gray-500 flex gap-3 ">
@@ -345,60 +338,23 @@ onMounted(() => {
 
                 </div>
             </div>
+
         </div>
+        <template v-if="listings.listings && listings.listings.length > 0">
+            <!-- edit modal -->
+            <AuthUserListingsEditModal :show_edit_modal :form :images="listings.listings[currentIndex].images"
+                @file-upload="fileUpload" @close-edit-modal="closeEditModal" @remove-photo="removePhoto"
+                @delete-photo="deletePhoto" @submit="submit" />
+            <!-- show delete modal -->
+            <AuthUserListingsDeleteModal :show_delete_warning @close-delete-warning="closeDeleteWarning"
+                @delete-confirmed="deleteConfirmed" />
+            <!-- show primary modal -->
+            <AuthUserListingsPrimaryModal @close-modal="closeModal" @show-delete-modal="showDeleteModal"
+                @show-edit-modal="showEditModal" :closeable :show :images="listings.listings[currentIndex].images"
+                :title="listings.listings[currentIndex].title" :location="listings.listings[currentIndex].location"
+                :description="listings.listings[currentIndex].description"
+                :price="listings.listings[currentIndex].price" />
+        </template>
     </template>
-    <!-- edit modal -->
-    <AuthUserListingsEditModal :show_edit_modal :form :images="listings.listings[currentIndex].images"
-        @file-upload="fileUpload" @close-edit-modal="closeEditModal" @remove-photo="removePhoto"
-        @delete-photo="deletePhoto" @submit="submit" />
-    <!-- show delete modal -->
-    <AuthUserListingsDeleteModal :show_delete_warning @close-delete-warning="closeDeleteWarning"
-        @delete-confirmed="deleteConfirmed" />
-    <!-- show primary modal -->
-    <Modal :show="show" :closeable="closeable" @close="closeModal">
-        <div class="p-8 relative">
-            <div>
-                <img v-if="listings.listings[currentIndex].images.length > 0"
-                    :src="listings.listings[currentIndex].images[0]" alt="">
-                <img v-else src="/Images/no_image_placeholder.jpg" alt="">
-            </div>
-            <div>
-                <h2 class="font-bold text-2xl mt-6">
-                    {{ listings.listings[currentIndex].title }}
-                </h2>
-                <p class="text-sm text-gray-500 mt-1">
-                    {{ listings.listings[currentIndex].location }}
-                </p>
-                <p class="text-accent mt-2 mb-6">
-                    {{ listings.listings[currentIndex].price }}
-                </p>
-                <h3 class="font-bold text-lg mb-3">Description</h3>
-                <p>
-                    {{ listings.listings[0].description }}
-                </p>
-                <div class="flex justify-between mt-3">
-                    <button @click="showEditModal" class="flex flex-col items-center">
-                        <span class=" text-accent text-xl">
-                            <i class="fas fa-pen-to-square"></i>
-                        </span>
-                        <span class="uppercase">
-                            edit listing
-                        </span>
-                    </button>
-                    <button @click="showDeleteModal" class="flex flex-col items-center">
-                        <span class=" text-red-500 text-xl">
-                            <i class="fas fa-trash"></i>
-                        </span>
-                        <span class="uppercase">
-                            delete listing
-                        </span>
-                    </button>
-                </div>
-            </div>
-            <button @click="closeModal"
-                class="w-8 rounded-full aspect-square bg-gray-600 text-white absolute top-3 right-3">
-                <i class="fas fa-xmark"></i>
-            </button>
-        </div>
-    </Modal>
+
 </template>
