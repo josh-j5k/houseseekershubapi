@@ -24,7 +24,6 @@ class Bookmark extends Model
         'id',
         "created_at",
         "updated_at"
-
     ];
     public function user(): BelongsTo
     {

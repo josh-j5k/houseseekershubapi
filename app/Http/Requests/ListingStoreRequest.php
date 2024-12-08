@@ -26,9 +26,11 @@ class ListingStoreRequest extends FormRequest
             "title" => ['required', 'string'],
             'description' => ['required', 'string'],
             'property_status' => ['required', 'string'],
+            'property_type' => ['required', 'string'],
             'location' => ['required', 'string'],
             'price' => ['required', 'int'],
-            'inputFiles' => ['required', File::types(['jpg', 'webp', 'png'])]
+            'inputFiles' => ['required', 'array'],
+            'inputFiles.*' => [File::types(['jpg', 'webp', 'png'])]
         ];
     }
 }

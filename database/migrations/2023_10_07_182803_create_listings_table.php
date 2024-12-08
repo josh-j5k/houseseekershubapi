@@ -13,14 +13,14 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('listings', function (Blueprint $table) {
-            $table->id();
-            $table->uuid('ref');
+            $table->id()->primary();
+            $table->string('slug')->nullable()->unique();
             $table->foreignIdFor(User::class, 'user_id')->onDelete('cascade');
             $table->string('title');
             $table->string('property_status');
             $table->string('property_type');
             $table->string('location');
-            $table->bigInteger('price');
+            $table->bigInteger('price')->unsigned();
             $table->text('description');
             $table->timestamps();
         });

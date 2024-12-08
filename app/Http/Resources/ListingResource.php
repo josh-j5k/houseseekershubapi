@@ -31,7 +31,7 @@ class ListingResource extends JsonResource
         }
         return [
             'id' => $this->id,
-            'ref' => $this->ref,
+            'slug' => $this->slug,
             'title' => $this->title,
             'location' => $this->location,
             'propertyStatus' => $this->property_status,

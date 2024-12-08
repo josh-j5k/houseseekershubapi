@@ -73,11 +73,11 @@ class ListingController extends Controller
     /**
      * Get a listing of the resource.
      */
-    public function show(Request $request, $ref)
+    public function show(Request $request, $slug)
     {
         try {
 
-            $listing = Listing::where('ref', $ref)->get();
+            $listing = Listing::where('slug', $slug)->get();
             if (!$listing) {
                 throw new AuthorizationException();
             }
@@ -139,21 +139,44 @@ class ListingController extends Controller
      */
     public function store(ListingStoreRequest $request): JsonResponse
     {
+        $slugEndingArr = ['fa5', 'eb4', 'dc3', 'cd2', 'be1', 'af9', '2fc', '1ce', '3bf', '4da'];
         try {
             DB::beginTransaction();
             $user = Auth::user();
 
             $listing = Listing::create([
-                'id' => $user->id,
+                'user_id' => $user->id,
                 'title' => $request->title,
                 'description' => $request->description,
                 'location' => $request->location,
                 'price' => $request->price,
-                'propery_status' => $request->property_status,
-                'ref' => Str::uuid()
+                'property_status' => $request->property_status,
+                'property_type' => $request->property_type
             ]);
 
-            ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
+            $ending = '';
+            $id = (string) $listing->id;
+            for ($i = 0; $i < strlen($id); $i++) {
+                $num = (int) $id[$i];
+                $ending .= $slugEndingArr[$num];
+            }
+            $characters = array('.', '@', '!', '$', '%', '#', '^', '*', '(', ')', );
+            $title = (string) str_replace($characters, '', $listing->title);
+            $rTitle = str_replace(['+', '_', '=', " "], '-', $title);
+            $location = str_replace([',', ';', '_'], "", explode(" ", $listing->location)[0]);
+            $slug = strtolower("$rTitle-$location-$ending");
+            $listing->update(['slug' => $slug]);
+
+            // ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
+            foreach ($request->inputFiles as $file_input) {
+
+                $folder = date("Y");
+                $subFolders = date("m");
+
+                $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
+
+                $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
+            }
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -166,12 +189,12 @@ class ListingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ListingStoreRequest $request, $ref, ): JsonResponse
+    public function update(ListingStoreRequest $request, $id, ): JsonResponse
     {
         try {
             DB::beginTransaction();
             $user = Auth::user();
-            $listing = Listing::where('ref', $ref)->where('user_id', $user->id)->first();
+            $listing = Listing::where('id', $id)->where('user_id', $user->id)->first();
             if (!$listing) {
                 throw new AuthorizationException();
             }

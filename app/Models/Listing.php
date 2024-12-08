@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Listing extends Model
 {
-    use HasFactory, HasUuids, ListingQueryScopeFilter, ListingRelationsTrait;
+    use HasFactory, ListingQueryScopeFilter, ListingRelationsTrait;
     protected $fillable = [
         'title',
         'user_id',
@@ -20,7 +20,7 @@ class Listing extends Model
         'location',
         'price',
         'description',
-        'ref'
+        'slug'
     ];
     protected $hidden = [
         "created_at",

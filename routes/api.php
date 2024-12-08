@@ -7,6 +7,9 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\BookmarkController;
 
+
+
+
 Route::prefix('listings')->group(function () {
     Route::get('/', [ListingController::class, 'index'])->name('listings');
     Route::get('/{id}', [ListingController::class, 'show'])->name('listings.show');
