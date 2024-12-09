@@ -1,11 +1,11 @@
 <script setup lang="ts">
 
 import type { LocationQuery, LocationQueryValue } from 'vue-router';
-import type { ListingsResponse, Listing } from '@/types/listings'
+import type { Listing } from '@/types/listings'
 
-const { decodeQuery, propertyType, location, status, price, priceValidate, locationValidate, removeQueryParams } = useListing()
-
-const { setStoredListings, storedListings } = useStoredListings()
+const { decodeQuery, propertyType, location, status, price, priceValidate, locationValidate, removeQueryParams, resetFields } = useListing()
+const { handleRequest } = useBackend()
+const { storedListings } = useStoredListings()
 
 const listings = ref(<Listing[]>Array(0))
 const loading = ref(true)
@@ -16,6 +16,7 @@ const sidebarToggled = ref(false)
 const activeGrid = ref('grid')
 const loadmore = ref(false)
 const query = decodeQuery()
+
 const filter = computed(() => {
     let arr = <string[]>[]
     for (const key in useRoute().query) {
@@ -29,16 +30,12 @@ const filter = computed(() => {
     }
     return arr
 })
+async function init() {
+    const { data, error } = await handleRequest('get', '/listings', query)
+    if (!error) {
 
-if (storedListings == undefined) {
-    const response = await useFetch('/api/listings', {
-        query,
-    })
-
-    if (response.status.value == 'success' && response.error.value == null) {
-        const data = response.data.value as unknown as ListingsResponse
         if (Object.keys(query).length == 0) {
-            setStoredListings(data.data)
+            useState('listings').value = data.data
             listings.value = data.data.listings
             hasMorePages.value = data.data.hasMorePages
         } else {
@@ -53,6 +50,9 @@ if (storedListings == undefined) {
         loading.value = false
 
     }
+}
+if (storedListings == undefined) {
+    init()
 } else {
     listings.value = storedListings.listings
 }
@@ -64,10 +64,8 @@ async function removeFilter(e: string) {
         query: newQuery
     })
     loading.value = true
-    const data = await $fetch('/api/listings', {
-        query: decodedQuery
-    }) as unknown as ListingsResponse
-    if (data.status == 'success') {
+    const { data, error } = await handleRequest('get', '/listings', decodedQuery)
+    if (!error) {
         listings.value = data.data.listings
         hasMorePages.value = data.data.hasMorePages
     }
@@ -77,9 +75,10 @@ async function removeFilter(e: string) {
 
 async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
     const encoded = encodeURIComponent(value?.toString()!)
-    const newQuery = { ...useRoute().query }
+    const q = useRoute().query
+    const newQuery = { ...q }
     newQuery[name] = encoded
-    await navigateTo({
+    navigateTo({
         path: '/listings',
         query: newQuery
     })
@@ -88,10 +87,8 @@ async function submit(name: string, value: LocationQueryValue | LocationQueryVal
         decoded[key] = decodeURIComponent(value as string)
     }
     loading.value = true
-    const data = await $fetch('/api/listings', {
-        query: decoded
-    }) as unknown as ListingsResponse
-    if (data.status == 'success') {
+    const { data, error } = await handleRequest('get', '/listings', decoded)
+    if (!error) {
         listings.value = data.data.listings
         hasMorePages.value = data.data.hasMorePages
     }
@@ -136,10 +133,8 @@ onMounted(() => {
         loadmore.value = true
         const decodedQuery = decodeQuery()
         decodedQuery['page'] = page.value.toString()
-        const data = await $fetch('/api/listings', {
-            query: decodedQuery
-        }) as unknown as ListingsResponse
-        if (data.status == 'success') {
+        const { data, error } = await handleRequest('get', '/listings', decodedQuery)
+        if (!error) {
             listings.value = [...listings.value, ...data.data.listings]
             hasMorePages.value = data.data.hasMorePages
         }
@@ -159,6 +154,7 @@ onMounted(() => {
 onUnmounted(() => {
     if (Object.keys(useRoute().query).length > 0) {
         clearNuxtState('listings')
+        resetFields()
     }
 })
 const title = 'Houses For Sale And For Rent'
@@ -169,10 +165,10 @@ useHead({
 
 useSeoMeta({
     ogImage: {
-        url: '/og image',
+        url: '/og image.png',
         type: 'image/png',
         height: 600,
-        secureUrl: '/og image'
+        secureUrl: '/og image.png'
     },
     ogDescription: description,
 
@@ -180,8 +176,10 @@ useSeoMeta({
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com/listings',
     twitterCard: "summary_large_image",
-    twitterImage: '/og image',
-    title: title.concat(" | House Seekers Hub"),
+    twitterImage: '/og image.png',
+    twitterTitle: title,
+    twitterDescription: description,
+    title: title,
     description: description
 })
 </script>

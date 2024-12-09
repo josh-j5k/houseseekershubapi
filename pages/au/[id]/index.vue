@@ -125,20 +125,21 @@ async function submit() {
     if (filesArr.value.length > 0) {
         form.value.inputFiles = filesArr.value
     }
-    if (validation(form.value, total.value)) {
-        const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.listings[currentIndex.value].id, form.value, 'multpartForm')
-        if (!error) {
-            toastNotification('Success', data.message)
-            show_edit_modal.value = false
-            form.value = initialFormValue
-            filesArr.value.length = 0
-            imgSrc.value = []
+    // if (validation(form.value, total.value)) {
+    //     const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.listings[currentIndex.value].id, form.value, 'multpartForm')
+    //     if (!error) {
+    //         toastNotification('Success', data.message)
+    //         show_edit_modal.value = false
+    //         form.value = initialFormValue
+    //         filesArr.value.length = 0
+    //         imgSrc.value = []
 
-        }
-        else {
-            toastNotification('Error', data.message)
-        }
-    }
+    //     }
+    //     else {
+    //         toastNotification('Error', data.message)
+    //     }
+    // }
+    console.log(form.value);
 
 }
 

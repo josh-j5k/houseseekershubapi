@@ -65,7 +65,7 @@ function submit() {
                     <div class="flex flex-col">
                         <label for="listing_title" class="capitalize font-bold text-lg mb-3">listing title</label>
                         <input v-model="form.title" type="text" name="listing title" id="listing_title"
-                            placeholder="Enter listing title" class="rounded-md"
+                            placeholder="Enter listing title" class="input"
                             :class="[formErrors.titleError ? 'border-red-500' : '']">
                     </div>
                     <p v-if="formErrors.titleError" class="text-red-500">
@@ -75,7 +75,7 @@ function submit() {
                         <label for="property_status" class="capitalize font-bold text-lg mb-3">property
                             status</label>
                         <select v-model="form.property_status" name="property status" id="proptery-status"
-                            class="rounded-md">
+                            class="input">
                             <option disabled> Choose property status</option>
                             <option value="rent">For Rent</option>
                             <option value="sale">For Sale</option>
@@ -86,9 +86,9 @@ function submit() {
                             month</label>
                         <div class="relative">
                             <input v-model="form.price" type="text" name="listing price" id="price_per_month"
-                                placeholder="Enter the price per month" class="px-14 w-full rounded-md"
+                                placeholder="Enter the price per month" class="input"
                                 :class="[formErrors.priceError ? 'border-red-500' : '']">
-                            <span class="font-bold absolute left-2 top-1/2 text-secondary -translate-y-1/2">XAF</span>
+                            <span class="font-bold absolute right-2 top-1/2 text-secondary -translate-y-1/2">FCFA</span>
                         </div>
                         <p v-if="formErrors.priceError" class="text-red-500">
                             Please enter a valid price.
@@ -98,7 +98,7 @@ function submit() {
                         <label for="property_location" class="capitalize font-bold text-lg mb-3">property
                             location</label>
                         <input v-model="form.location" type="text" name="location location" id="property_location"
-                            placeholder="Enter the property location" class="rounded-md"
+                            placeholder="Enter the property location" class="input"
                             :class="[formErrors.locationError ? 'border-red-500' : '']">
                     </div>
                     <p v-if="formErrors.locationError" class="text-red-500">
@@ -107,7 +107,7 @@ function submit() {
                     <div class="flex flex-col">
                         <label for="property_type" class="capitalize font-bold text-lg mb-3">property
                             type</label>
-                        <select v-model="form.property_type" name="property type" id="proptery-type" class="rounded-md"
+                        <select v-model="form.property_type" name="property type" id="proptery-type" class="input"
                             :class="[formErrors.propertyTypeError ? 'border-red-500' : '']">
                             <option disabled> Choose property type</option>
                             <option value="room">Room</option>
@@ -123,8 +123,7 @@ function submit() {
                         <label for="property_description" class="capitalize font-bold text-lg mb-3">property
                             description</label>
                         <textarea v-model="form.description" name="property_description" id="" cols="30" rows="10"
-                            class="rounded-md"
-                            :class="[formErrors.descriptionError ? 'border-red-500' : '']"></textarea>
+                            class="input" :class="[formErrors.descriptionError ? 'border-red-500' : '']"></textarea>
                     </div>
                     <p v-if="formErrors.descriptionError" class="text-red-500">
                         Please enter a description.

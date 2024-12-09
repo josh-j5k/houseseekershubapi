@@ -4,20 +4,26 @@ import type { user } from '~/types/user';
 definePageMeta({
     layout: 'full-page'
 })
-type response = { status: string, message: string, data: { listing: Listing, canShare: string, bookmark: boolean } }
+type response = { status: string, message: string, data: Listing }
 const showMessage = ref(false)
 const messageInput = ref('')
 const authorized = ref(<string | null>null)
 const data = ref(<response>{
 })
 
+const isAuthorized = ref(<{ bookmark: boolean, ref: string | null }>{
+    bookmark: false,
+    ref: null
+})
 const { handleRequest } = useBackend()
 const { assignFiles, imgSrc } = useFileUpload()
 
 const chatLoading = ref(true)
+const bookmarkLoading = ref(false)
 const currentIndex = ref(0)
 const chats = ref(<null | any>null)
 const authUser = ref(<user | undefined>undefined)
+
 
 const response = await useFetch('/api/listings/'.concat(useRoute().params.listing.toString()))
 
@@ -25,12 +31,12 @@ if (response.error.value == null) {
     data.value = response.data.value as response
 
     useHead({
-        title: data.value.data.listing.title
+        title: data.value.data.title
     })
     if (import.meta.client) {
-        authUser.value = JSON.parse(localStorage.getItem('user')!)
-        if (authUser.value && data.value) {
-            authUser.value.user.ref !== data.value.data.canShare ? authorized.value = data.value.data.canShare : ''
+        const { data, error } = await handleRequest('get', '/authorized/'.concat(useRoute().params.listing.toString()))
+        if (!error) {
+            isAuthorized.value = data.data
 
         }
     }
@@ -79,7 +85,7 @@ async function getChats() {
     showMessage.value = true
 
     if (chats.value == null) {
-        const { data, error } = await handleRequest('get', '/messages/'.concat(authorized.value!))
+        const { data, error } = await handleRequest('get', '/messages/'.concat(isAuthorized.value.ref!))
         if (!error) {
 
             chats.value = data.data
@@ -100,21 +106,23 @@ function uploadPicture() {
     input.click()
 }
 async function setBookmark() {
-    const { error } = await handleRequest('post', '/bookmark/' + data.value.data.listing.id)
+    bookmarkLoading.value = true
+    const { error } = await handleRequest('post', '/bookmark/' + data.value.data.id)
     if (!error) {
 
-        if (data.value.data.bookmark) {
+        if (isAuthorized.value.bookmark) {
             toastNotification('Success', 'Bookmark removed')
         } else {
             toastNotification('Success', 'Bookmark added')
         }
-        data.value.data.bookmark = !data.value.data.bookmark
+        isAuthorized.value.bookmark = !isAuthorized.value.bookmark
     }
+    bookmarkLoading.value = false
 }
 function prevPic() {
     currentIndex.value--
     if (currentIndex.value < 0) {
-        currentIndex.value = data.value.data.listing.images?.length - 1
+        currentIndex.value = data.value.data.images?.length - 1
 
     }
 }
@@ -122,27 +130,26 @@ function prevPic() {
 
 function nextPic() {
     currentIndex.value++
-    if (currentIndex.value > data.value.data.listing.images?.length - 1) {
+    if (currentIndex.value > data.value.data.images?.length - 1) {
         currentIndex.value = 0
     }
 }
 
-
-
 useSeoMeta({
     ogImage: {
-        url: data.value.data.listing.images[0],
-        secureUrl: data.value.data.listing.images[0]
+        url: data.value.data.images[0],
+        secureUrl: data.value.data.images[0]
     },
-    ogDescription: data.value.data.listing.description,
-
-    ogTitle: data.value.data.listing.title,
+    ogDescription: data.value.data.description,
+    ogTitle: data.value.data.title,
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com/listings/create',
     twitterCard: "summary_large_image",
-    twitterImage: data.value.data.listing.images[0],
-    title: data.value.data.listing.title.concat(" | House Seekers Hub"),
-    description: data.value.data.listing.description
+    twitterImage: data.value.data.images[0],
+    twitterTitle: data.value.data.title,
+    twitterDescription: data.value.data.description,
+    title: data.value.data.title,
+    description: data.value.data.description
 })
 </script>
 <template>
@@ -161,13 +168,13 @@ useSeoMeta({
                     class="min-h-screen isolate relative before:content-emptystring before:absolute before:w-full before:h-full before:inset-0 before:bg-[rgba(0,_0,_0,_0.2)] overflow-clip before:-z-10 flex justify-center items-center bg-slate-500">
                     <!-- backdrop background -->
                     <div class="w-full h-full absolute">
-                        <img :src="data.data.listing.images[currentIndex]" alt="listing image"
+                        <img :src="data.data.images[currentIndex]" alt="listing image"
                             class="w-full h-full object-cover absolute inset-0 blur-lg -z-20">
                     </div>
                     <!-- listing image -->
                     <div>
-                        <a :href="data.data.listing.images[currentIndex]" target="_blank">
-                            <img :src="data.data.listing.images[currentIndex]" alt="listing image" class="max-w-lg">
+                        <a :href="data.data.images[currentIndex]" target="_blank">
+                            <img :src="data.data.images[currentIndex]" alt="listing image" class="max-w-lg">
                         </a>
                     </div>
                     <button @click="prevPic" type="button" title="click to get previous image"
@@ -182,9 +189,9 @@ useSeoMeta({
                             <i class="fas fa-chevron-right"></i>
                         </span>
                     </button>
-                    <div v-if="data.data.listing.images.length > 0"
+                    <div v-if="data.data.images.length > 0"
                         class="absolute flex gap-2 overflow-x-auto overflow-y-hidden py-1 mx-auto bottom-2 z-10 bg-[rgba(255,_255,_255,_0.1)] justify-center w-full h-16">
-                        <template v-for="(item, index) in data.data.listing.images">
+                        <template v-for="(item, index) in data.data.images">
                             <img @click="currentIndex = index" :src="item" alt=""
                                 class="w-20 aspect-square object-cover cursor-pointer"
                                 :class="[index === currentIndex ? 'border-2 border-blue-500' : '']">
@@ -194,14 +201,14 @@ useSeoMeta({
                 <div class="bg-white py-12 px-8 shadow md:h-screen overflow-y-auto relative">
                     <div>
                         <h1 class="capitalize font-bold text-3xl mb-3">
-                            {{ data.data.listing.title }}
+                            {{ data.data.title }}
                         </h1>
                         <p class="font-bold flex gap-1 text-sm text-accent">
                             <span>
-                                <span>{{ data.data.listing.price.toLocaleString('en-US', {
+                                <span>{{ data.data.price.toLocaleString('en-US', {
                                     style: 'currency',
                                     currency: 'XAF'
-                                }) }} {{ data.data.listing.propertyStatus === 'rent' ? '/Month' : '' }}</span>
+                                }) }} {{ data.data.propertyStatus === 'rent' ? '/Month' : '' }}</span>
                             </span>
 
                         </p>
@@ -210,35 +217,57 @@ useSeoMeta({
                                 Property for
                             </span>
                             <span>
-                                {{ data.data.listing.propertyStatus }}
+                                {{ data.data.propertyStatus }}
                             </span>
                         </p>
 
                         <div class="flex gap-4 relative">
 
-                            <button :disabled="authorized == null || authorized === authUser?.user.ref"
-                                @mousedown="onMouseDown" @mouseup="onMouseUp" @click="getChats" type="button"
-                                title="message" class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg"
-                                :class="[authorized == null || authorized === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
-                                <span>
-                                    <i class="fa-regular fa-comments"></i>
-                                </span>
-                                <span class="capitalize">
-                                    message
-                                </span>
-                            </button>
-                            <button :disabled="authorized == null || authorized === authUser?.user.ref"
-                                @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark" type="button"
-                                title="bookmark" class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg"
-                                :class="[authorized == null || authorized === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
-                                <span v-if="data.data.bookmark">
-                                    <i class="fa-solid fa-bookmark text-blue-300"></i>
-                                </span>
-                                <span v-else>
-                                    <i class="fa-regular fa-bookmark text-white"></i>
-                                </span>
+                            <ClientOnly>
+                                <button :disabled="isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref"
+                                    @mousedown="onMouseDown" @mouseup="onMouseUp" @click="getChats" type="button"
+                                    title="message" class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg"
+                                    :class="[isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref ? 'opacity-60 cursor-not-allowed' : '']">
+                                    <span>
+                                        <i class="fa-regular fa-comments"></i>
+                                    </span>
+                                    <span class="capitalize">
+                                        message
+                                    </span>
+                                </button>
+                                <button
+                                    :disabled="isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref || bookmarkLoading"
+                                    @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark" type="button"
+                                    title="bookmark" class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg"
+                                    :class="[isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref || bookmarkLoading ? 'opacity-60 cursor-not-allowed' : '']">
+                                    <span v-if="isAuthorized.bookmark">
+                                        <i class="fa-solid fa-bookmark text-blue-300"></i>
+                                    </span>
+                                    <span v-else>
+                                        <i class="fa-regular fa-bookmark text-white"></i>
+                                    </span>
 
-                            </button>
+                                </button>
+                                <template #fallback>
+                                    <button disabled type="button" title="message"
+                                        class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg opacity-60 cursor-not-allowed">
+                                        <span>
+                                            <i class="fa-regular fa-comments"></i>
+                                        </span>
+                                        <span class="capitalize">
+                                            message
+                                        </span>
+                                    </button>
+                                    <button disabled type="button" title="bookmark"
+                                        class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg opacity-60 cursor-not-allowed">
+
+                                        <span>
+                                            <i class="fa-regular fa-bookmark text-white"></i>
+                                        </span>
+
+                                    </button>
+                                </template>
+                            </ClientOnly>
 
                             <button @click="share" @mousedown="onMouseDown" @mouseup="onMouseUp" type="button"
                                 title="share" class="flex gap-3 bg-secondary text-white py-1 px-3 rounded-lg">
@@ -252,13 +281,13 @@ useSeoMeta({
                     <hr class="w-full bg-slate-300 my-4">
                     <div class="pb-4">
                         <p class="font-bold text-lg mb-1"> Location</p>
-                        <p class="text-sm">{{ data.data.listing.location }}</p>
+                        <p class="text-sm">{{ data.data.location }}</p>
                     </div>
                     <hr class="w-full bg-slate-300 my-4">
                     <h2 class="font-bold text-lg mb-4">
                         Description
                     </h2>
-                    <p>{{ data.data.listing.description }}</p>
+                    <p>{{ data.data.description }}</p>
 
                     <!-- message box -->
                     <div v-if="showMessage"

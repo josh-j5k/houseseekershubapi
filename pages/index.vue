@@ -55,10 +55,10 @@ useHead({
 })
 useSeoMeta({
     ogImage: {
-        url: '/og image',
+        url: '/og image.png',
         type: 'image/png',
         height: 600,
-        secureUrl: '/og image'
+        secureUrl: '/og image.png'
     },
     ogDescription: description,
 
@@ -66,9 +66,12 @@ useSeoMeta({
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com',
     twitterCard: "summary_large_image",
-    twitterImage: '/og image',
-    title: title.concat(" | House Seekers Hub"),
+    twitterImage: '/og image.png',
+    twitterTitle: title,
+    twitterDescription: description,
+    title: title,
     description: description
+
 })
 </script>
 <template>

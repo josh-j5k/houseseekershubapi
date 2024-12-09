@@ -82,15 +82,19 @@ onUnmounted(() => {
                 <div class="flex gap-6 -lg:justify-between -lg:pt-8 -lg:border-t">
 
                     <div class="flex items-center gap-2 h-12">
-                        <button type="button" title="New listing" @click="$router.push({ name: 'listings-create' })"
-                            class="text-white hover:bg-accent-hover bg-accent flex items-center justify-center gap-2 h-9 w-32 rounded-md ">
-                            <span>
-                                <i class="fas fa-circle-plus"></i>
-                            </span>
-                            <span class="capitalize ">
-                                new listing
-                            </span>
-                        </button>
+                        <ul>
+                            <li>
+                                <NuxtLink :to="{ name: 'listings-create' }"
+                                    class="text-white hover:bg-accent-hover bg-accent flex items-center justify-center gap-2 h-9 w-32 rounded-md ">
+                                    <span>
+                                        <i class="fas fa-circle-plus"></i>
+                                    </span>
+                                    <span class="capitalize ">
+                                        new listing
+                                    </span>
+                                </NuxtLink>
+                            </li>
+                        </ul>
                     </div>
 
                     <ClientOnly>

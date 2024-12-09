@@ -84,13 +84,38 @@ const submit = async () => {
 
     navigateTo({ name: 'au-id', params: { id: data.user.ref } })
 }
+const title = 'Signin'
+const description = "Signin into your House Seekers Hub account"
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image.png',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image.png'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/login',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image.png',
+    twitterTitle: title,
+    twitterDescription: description,
+    title: title,
+    description: description
+})
 </script>
 
 <template>
 
 
 
-    <Head title="Signin" />
+
 
     <!-- <ApplicationLogo class="w-16 absolute top-8 left-8" /> -->
     <div class="min-h-screen flex flex-col sm:justify-center items-center py-8 sm:pt-0 bg-gray-100 -sm:pt-24">

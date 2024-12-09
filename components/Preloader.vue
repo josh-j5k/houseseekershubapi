@@ -1,4 +1,6 @@
 <script setup lang="ts">
+onMounted(() => document.documentElement.style.overflow = 'hidden')
+onUnmounted(() => document.documentElement.style.overflow = 'auto')
 
 </script>
 <template>

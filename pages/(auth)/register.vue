@@ -31,6 +31,31 @@ const submit = async () => {
 
     navigateTo({ name: 'au-id', params: { id: data.user.ref } })
 };
+const title = 'Signup'
+const description = "Join thousands of others to start searching the perfect house or start listing."
+useHead({
+    title
+})
+
+useSeoMeta({
+    ogImage: {
+        url: '/og image.png',
+        type: 'image/png',
+        height: 600,
+        secureUrl: '/og image.png'
+    },
+    ogDescription: description,
+
+    ogTitle: title,
+    ogType: 'website',
+    ogUrl: 'https://houseseekershub.com/register',
+    twitterCard: "summary_large_image",
+    twitterImage: '/og image.png',
+    twitterTitle: title,
+    twitterDescription: description,
+    title: title,
+    description: description
+})
 </script>
 
 <template>

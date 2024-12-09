@@ -134,10 +134,10 @@ useHead({
 
 useSeoMeta({
     ogImage: {
-        url: '/og image',
+        url: '/og image.png',
         type: 'image/png',
         height: 600,
-        secureUrl: '/og image'
+        secureUrl: '/og image.png'
     },
     ogDescription: description,
 
@@ -145,8 +145,10 @@ useSeoMeta({
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com/listings/create',
     twitterCard: "summary_large_image",
-    twitterImage: '/og image',
-    title: title.concat(" | House Seekers Hub"),
+    twitterImage: '/og image.png',
+    twitterTitle: title,
+    twitterDescription: description,
+    title: title,
     description: description
 })
 </script>
@@ -154,15 +156,13 @@ useSeoMeta({
 
 <template>
 
-
     <template v-if="loading">
-        <Teleport to="teleports">
-            <Preloader />
-        </Teleport>
-
+        <Preloader />
     </template>
+
     <section
         class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center pt-0 gap-4">
+
         <div
             class="lg:w-[30vw] -lg:h-full h-screen lg:overflow-y-auto lg:fixed lg:left-0 top-0 bg-white shadow px-8 py-16 lg:pt-28">
             <form @submit.prevent="submit" id="form" enctype="multipart/form-data">

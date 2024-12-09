@@ -9,7 +9,7 @@ type contentType = 'json' | 'multpartForm'
 
 
 const base = import.meta.env.VITE_API_URL
-const xsrfUrl = new URL('/sanctum/csrf-cookie', base)
+
 export default function useBackend() {
     const loading = ref(true)
     const btnLoading = ref(false)

@@ -1,18 +1,11 @@
 import type { LocationQuery, LocationQueryValue } from 'vue-router';
-import type { Listing, Listings } from '~/types/listings';
 
-
-const loading = ref(true)
-const listings = ref(<Listings>{
-    listings: <Listing[]>[]
-})
-const { handleRequest } = useBackend()
 const location = ref(<string | null>null)
 const errors = reactive({
     locationError: false,
     priceError: false
 })
-const perPage = ref('8')
+
 const status = ref(<string>'any')
 const propertyType = ref(<string[]>[])
 
@@ -25,38 +18,13 @@ const price = ref(<{
     })
 
 
-async function getListings(query: any) {
-    loading.value = true
-    const { data, error } = await handleRequest('get', '/listings', query)
-    if (!error) {
-        listings.value.listings = data.data.listings
-        listings.value.hasMorePages = data.data.hasMorePages
-
-    }
-    loading.value = false
-}
-
-async function submit(name: string, value: LocationQueryValue | LocationQueryValue[]) {
-    const encoded = encodeURIComponent(value?.toString()!)
-    const query = useRoute().query
-    const newQuery = { ...query }
-
-    newQuery[name] = encoded
-    await navigateTo({
-        path: '/listings',
-        query: newQuery
-    })
-    const decodedQuery = <LocationQuery>{}
-    for (const key in newQuery) {
-        const value = decodeURIComponent(newQuery[key] as string);
-        decodedQuery[key] = value
-    }
-    decodedQuery['limit'] = perPage.value
-    getListings(decodedQuery)
-}
-
-
 export function useListing() {
+    function resetFields() {
+        location.value = null
+        price.value = { max: null, min: null }
+        status.value = 'any'
+        propertyType.value = <string[]>[]
+    }
     function encodeQuery() {
         const query = useRoute().query
         const encodedQuery = <LocationQuery>{}
@@ -211,6 +179,7 @@ export function useListing() {
         priceValidate,
         decodeQuery,
         removeQueryParams,
-        encodeQuery
+        encodeQuery,
+        resetFields
     }
 }
