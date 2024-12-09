@@ -53,7 +53,7 @@ class ListingController extends Controller
                 'property_type' => $property_type
             ];
 
-            $limit = (int) $request->limit ?: 16;
+            $limit = (int) $request->limit ?: 12;
             $page = (int) $request->page ?: 1;
             $total = Listing::count();
             $offset = ($page - 1) * $limit;
@@ -73,7 +73,7 @@ class ListingController extends Controller
     /**
      * Get a listing of the resource.
      */
-    public function show(Request $request, $slug)
+    public function show($slug)
     {
         try {
 
@@ -81,28 +81,40 @@ class ListingController extends Controller
             if (!$listing) {
                 throw new AuthorizationException();
             }
-            $userRef = $listing[0]->user->ref;
+
             $data = ListingResource::collection($listing);
 
-            $payload = [
-                'listing' => $data[0],
 
-            ];
-
-            if ($request->bearerToken()) {
-                $model = Sanctum::$personalAccessTokenModel;
-                $accessToken = $model::findToken($request->bearerToken());
-
-                if ($accessToken) {
-                    $payload['canShare'] = $userRef;
-                    $bookmark = Bookmark::where('user_id', $accessToken->tokenable_id)->where('listing_id', $listing[0]->id)->first();
-                    $payload['bookmark'] = $bookmark ? true : false;
-                }
-            }
         } catch (\Throwable $th) {
             return $this->response('error', $th->getMessage(), $th->getTrace(), statusCode: 406);
         }
-        return $this->response('success', 'Listing', $payload);
+        return $this->response('success', 'Listing', $data[0]);
+    }
+    /**
+     * check if request is from authenticated user.
+     */
+    public function isAuthenticated($slug)
+    {
+        try {
+
+            $listing = Listing::where('slug', $slug)->get();
+            if (!$listing) {
+                throw new AuthorizationException();
+            }
+
+            $userRef = null;
+            if (Auth::user()->id !== $listing[0]->user->id) {
+                $userRef = $listing[0]->user->ref;
+            }
+            $payload['ref'] = $userRef;
+            $bookmark = Bookmark::where('user_id', Auth::user()->id)->where('listing_id', $listing[0]->id)->first();
+            $payload['bookmark'] = $bookmark ? true : false;
+
+
+        } catch (\Throwable $th) {
+            return $this->response('error', $th->getMessage(), $th->getTrace(), statusCode: 406);
+        }
+        return $this->response('success', 'Authenticated data', $payload);
     }
     /**
      * Get User Listigs
@@ -139,7 +151,7 @@ class ListingController extends Controller
      */
     public function store(ListingStoreRequest $request): JsonResponse
     {
-        $slugEndingArr = ['fa5', 'eb4', 'dc3', 'cd2', 'be1', 'af9', '2fc', '1ce', '3bf', '4da'];
+
         try {
             DB::beginTransaction();
             $user = Auth::user();
@@ -154,17 +166,7 @@ class ListingController extends Controller
                 'property_type' => $request->property_type
             ]);
 
-            $ending = '';
-            $id = (string) $listing->id;
-            for ($i = 0; $i < strlen($id); $i++) {
-                $num = (int) $id[$i];
-                $ending .= $slugEndingArr[$num];
-            }
-            $characters = array('.', '@', '!', '$', '%', '#', '^', '*', '(', ')', );
-            $title = (string) str_replace($characters, '', $listing->title);
-            $rTitle = str_replace(['+', '_', '=', " "], '-', $title);
-            $location = str_replace([',', ';', '_'], "", explode(" ", $listing->location)[0]);
-            $slug = strtolower("$rTitle-$location-$ending");
+            $slug = $this->slug($listing->id, $listing->title, $listing->location);
             $listing->update(['slug' => $slug]);
 
             // ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
@@ -207,15 +209,28 @@ class ListingController extends Controller
                 'description' => $request->description,
             ];
             $listing->update($form_fields);
-            if ($request->deletedImages !== null) {
-                foreach ($request->deletedImages as $image) {
-                    $listing->uploads()->where('url', $image)->delete();
-                    if (is_dir(public_path($image))) {
-                        unlink(public_path($image));
+            if (count($request->deletedImages) > 0) {
+                foreach ($request->deletedImages as $url) {
+                    $endingIndex = strpos($url, 'images');
+                    $substring = substr($url, $endingIndex);
+                    $listing->uploads()->where('url', $substring)->delete();
+                    if (is_dir(public_path($substring))) {
+                        unlink(public_path($substring));
                     }
                 }
             }
-            ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
+            // ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
+            if (count($request->inputFiles) > 0) {
+                foreach ($request->inputFiles as $file_input) {
+
+                    $folder = date("Y");
+                    $subFolders = date("m");
+
+                    $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
+
+                    $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
+                }
+            }
 
             DB::commit();
         } catch (\Throwable $th) {
@@ -245,5 +260,20 @@ class ListingController extends Controller
         return $this->response('success', 'Listing deleted successfully');
     }
 
-
+    function slug(string|int $listing_id, string $listing_title, string $listing_location): string
+    {
+        $slugEndingArr = ['fa5', 'eb4', 'dc3', 'cd2', 'be1', 'af9', '2fc', '1ce', '3bf', '4da'];
+        $ending = '';
+        $id = (string) $listing_id;
+        for ($i = 0; $i < strlen($id); $i++) {
+            $num = (int) $id[$i];
+            $ending .= $slugEndingArr[$num];
+        }
+        $characters = array('.', '@', '!', '$', '%', '#', '^', '*', '(', ')', );
+        $title = (string) str_replace($characters, '', $listing_title);
+        $rTitle = str_replace(['+', '_', '=', " "], '-', $title);
+        $location = str_replace([',', ';', '_'], "", explode(" ", $listing_location)[0]);
+        $slug = strtolower("$rTitle-$location-$ending");
+        return $slug;
+    }
 }

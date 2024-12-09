@@ -20,6 +20,7 @@ Route::post('/contact', [ContactController::class, 'store']);
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/authorized/{id}', [ListingController::class, 'isAuthenticated'])->name('listings.show.authenticate');
     Route::prefix("bookmark")->group(function () {
         Route::get('/', [BookmarkController::class, 'index']);
         Route::post('/{listing}', [BookmarkController::class, 'store']);

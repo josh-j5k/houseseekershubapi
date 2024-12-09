@@ -15,8 +15,8 @@ class ImageCompressHelper
 
 
 
-        if (!is_dir("$dir")) {
-            mkdir("$dir", recursive: true);
+        if (!is_dir($dir)) {
+            mkdir($dir, recursive: true);
         }
         $imageType = getimagesize($original_image)['mime'];
         $img = null;
