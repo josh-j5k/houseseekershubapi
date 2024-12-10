@@ -4,7 +4,8 @@ onUnmounted(() => document.documentElement.style.overflow = 'auto')
 
 </script>
 <template>
-    <div class="w-screen h-screen z-max fixed isolate flex justify-center items-center bg-[rgba(255,255,255,0.75)]">
+    <div
+        class="w-screen h-screen z-max fixed top-0 left-0 isolate flex justify-center items-center bg-[rgba(255,255,255,0.75)]">
         <div class="container">
             <div
                 class="w-16 aspect-square rounded-full bg-transparent border-b-transparent border-2 border-accent animate-spin">

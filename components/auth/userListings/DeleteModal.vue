@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
-    show_delete_warning: boolean
+    show_delete_warning: boolean,
+    loading: boolean
 }>()
 const emit = defineEmits(['closeDeleteWarning', 'deleteConfirmed'])
 function deleteConfirmed() {
@@ -22,14 +23,15 @@ function closeDeleteWarning() {
                 </span>
             </p>
             <div class="flex justify-between">
-                <button @click="deleteConfirmed" class="flex gap-2 py-1 px-3 rounded  bg-red-500 text-white">
-                    <span>
+                <ButtonWithLoader @click="deleteConfirmed" color="bg-red-600" hover_color="red-400" :loading>
+                    <span v-if="!loading">
                         <i class="fas fa-check"></i>
                     </span>
                     <span>
                         Yes
                     </span>
-                </button>
+                </ButtonWithLoader>
+
                 <button @click="closeDeleteWarning" class="flex gap-2 py-1 px-3 rounded bg-gray-500 text-white">
                     <span>
                         <i class="fas fa-xmark"></i>

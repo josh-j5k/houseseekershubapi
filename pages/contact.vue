@@ -47,12 +47,14 @@ function validate() {
     return true
 }
 async function submit() {
-    console.log(form);
-
     if (validate()) {
         const { error, data } = await handleRequest('post', '/contact', form)
-        console.log(data);
-        toastNotification('Success', 'Feedback sent successsfully')
+
+        if (!error) {
+            toastNotification('Success', data.message)
+        } else {
+            toastNotification('Error', data.message)
+        }
     }
 }
 const title = 'Get In Touch With Us'

@@ -22,18 +22,17 @@ const form = ref({
 
 })
 
-const initialFormValue = {
-    title: '',
-    property_status: 'rent',
-    price: '',
-    location: '',
-    description: '',
-    property_type: '',
-    inputFiles: <any>[]
 
-}
 const currentIndex = ref(0)
-
+function resetFields() {
+    form.value.title = ""
+    form.value.description = ""
+    form.value.inputFiles = <any>[]
+    form.value.location = ""
+    form.value.property_status = 'rent'
+    form.value.price = ''
+    form.value.property_type = ''
+}
 function fileUpload(e: MouseEvent) {
     const dropbox = e.currentTarget as HTMLDivElement
     const input = dropbox.querySelector('#file_upload') as HTMLInputElement
@@ -87,18 +86,19 @@ async function submit() {
     }
     const inputForm = <HTMLFormElement>document.getElementById('form')
     const formData = new FormData(inputForm)
+    const input = <HTMLInputElement>document.getElementById('file_upload')
     const file = formData.getAll('file_upload')
     if (validation(form.value, total.value)) {
         loading.value = true
         form.value.inputFiles = file
-        console.log(form.value.inputFiles);
-
         const { data, error } = await handleRequest('post', '/listings/store', form.value, 'multpartForm')
         if (!error) {
             toastNotification('Success', 'Listing added successfully')
-            form.value = initialFormValue
+            resetFields()
             imgSrc.value.length = 0
             filesArr.value.length = 0
+            input.files = null
+            input.value = ''
             total.value = 0
         } else {
             toastNotification('Error', data.message)

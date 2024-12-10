@@ -7,7 +7,8 @@ const emit = defineEmits(['closeEditModal', 'fileUpload', 'removePhoto', 'delete
 defineProps<{
     show_edit_modal: boolean,
     images: string[],
-    form: form
+    form: form,
+    loading: boolean
 }>()
 function fileUpload(e: MouseEvent) {
     emit('fileUpload', e)
@@ -128,9 +129,9 @@ function submit() {
                     <p v-if="formErrors.descriptionError" class="text-red-500">
                         Please enter a description.
                     </p>
-                    <button type="submit" class="bg-accent py-3 px-6 text-white">
+                    <ButtonWithLoader type="submit" :loading>
                         Update
-                    </button>
+                    </ButtonWithLoader>
                 </div>
             </form>
         </div>

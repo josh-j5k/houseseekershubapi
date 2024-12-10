@@ -134,21 +134,22 @@ function nextPic() {
         currentIndex.value = 0
     }
 }
-
+const regex = /[.@!$%#^*;]/g
+const title = data.value.data.title.replaceAll(regex, '')
 useSeoMeta({
     ogImage: {
         url: data.value.data.images[0],
         secureUrl: data.value.data.images[0]
     },
     ogDescription: data.value.data.description,
-    ogTitle: data.value.data.title,
+    ogTitle: title,
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com/listings/create',
     twitterCard: "summary_large_image",
     twitterImage: data.value.data.images[0],
-    twitterTitle: data.value.data.title,
+    twitterTitle: title,
     twitterDescription: data.value.data.description,
-    title: data.value.data.title,
+    title: title,
     description: data.value.data.description
 })
 </script>

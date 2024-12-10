@@ -12,6 +12,11 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  // routeRules: {
+  //   '/login': { prerender: false },
+  //   '/register': { prerender: false },
+  //   '/contact': { prerender: false },
+  // },
   runtimeConfig: {
     public: {
       apiUrl: "http://localhost:8000",

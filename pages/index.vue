@@ -4,7 +4,7 @@ import type { ListingsResponse, Listing } from '~/types/listings';
 const { handleRequest } = useBackend();
 const loading = ref(true)
 const listings = ref(<Listing[]>[])
-
+const config = useRuntimeConfig()
 const { storedListings } = useStoredListings()
 
 
@@ -29,21 +29,17 @@ async function submit() {
         query: query
     })
 }
-if (storedListings == undefined) {
-    const response = await useFetch('/api/listings', {
-        query: {
-            limit: 4
-        }
-    })
-    if (response.error.value == null) {
-        const data = response.data.value as unknown as ListingsResponse
-
+async function init() {
+    const { data, error } = await handleRequest('get', '/listings?limit=4')
+    if (!error) {
         listings.value = data.data.listings
         loading.value = false
     } else {
         loading.value = false
-
     }
+}
+if (storedListings == undefined) {
+    init()
 } else {
     listings.value = storedListings.listings.slice(0, 4)
 }

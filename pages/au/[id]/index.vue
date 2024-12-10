@@ -8,20 +8,19 @@ definePageMeta({
 
 })
 const listings = ref(<Listings>{})
-
+const page = ref(1)
 const currentIndex = ref(0)
 const loading = ref(true)
+const loadmore = ref(false)
+const updateLoading = ref(false)
+const deleteLoading = ref(false)
 const { validation } = useListingFormValidator()
 const { deleteFile, imgSrc, total, assignFiles, dragenter, dragover, drop, filesArr } = useFileUpload()
 
 const { handleRequest, btnLoading } = useBackend()
 
-const userListings = <Listings | undefined>useState('userListings').value
-if (userListings) {
-    listings.value = userListings
-    loading.value = false
-}
 
+const storeUserListings = <Ref<Listings | undefined>>useState('userListings', () => undefined)
 
 const form = ref({
     title: '',
@@ -33,50 +32,95 @@ const form = ref({
     deletedImages: <string[]>[],
     inputFiles: <File[]>[]
 })
-const initialFormValue = {
-    title: '',
-    description: '',
-    price: <string | number>'',
-    location: '',
-    property_status: '',
-    property_type: '',
-    deletedImages: <string[]>[],
-    inputFiles: <File[]>[]
+function resetFields() {
+    form.value.title = ""
+    form.value.description = ""
+    form.value.inputFiles = <any>[]
+    form.value.location = ""
+    form.value.property_status = 'rent'
+    form.value.price = ''
+    form.value.property_type = ''
+    form.value.deletedImages = <string[]>[]
 }
-
+const options = {
+    rootMargin: "0px",
+    threshold: 1.0,
+}
 const mainImage = ref(0)
-
 const show = ref(false)
 const show_delete_warning = ref(false)
 const show_edit_modal = ref(false)
 const closeable = ref(true)
-function closeModal() {
-    show.value = false
-}
-function closeDeleteWarning() {
-    show_delete_warning.value = false
-}
-function showDeleteModal() {
-    show.value = false
-    show_delete_warning.value = true
-}
-function closeEditModal() {
-    show.value = false
-    show_edit_modal.value = false
+
+function intersectionCallback(e: IntersectionObserverEntry[]) {
+    const intersection = e[0]
+
+    if (intersection.isIntersecting && (listings.value.hasMorePages || storeUserListings.value?.hasMorePages)) {
+        page.value++
+        moreListing()
+    }
 }
 
-if (userListings == undefined) {
+if (storeUserListings.value) {
+    listings.value = storeUserListings.value
+    loading.value = false
+    const target = document.getElementById("loadmore")!;
+
+    const observer = new IntersectionObserver(intersectionCallback, options);
+    observer.observe(target)
+} else {
     (async function () {
         const { data, error } = await handleRequest('get', '/listings/user/listings')
         if (!error) {
             listings.value.listings = data.data.listings
             listings.value.hasMorePages = data.data.hasMorePages
-            useState('userListings', () => listings.value)
+            storeUserListings.value = listings.value
+            if (data.data.listings.length > 0) {
+
+                setTimeout(() => {
+                    const target = document.getElementById("loadmore")!;
+
+                    const observer = new IntersectionObserver(intersectionCallback, options);
+                    observer.observe(target)
+                }, 10);
+            }
         }
         loading.value = false
     })()
+}
+
+function closeModal() {
+    show.value = false
+}
+
+function closeDeleteWarning() {
+    show_delete_warning.value = false
+}
+
+function showDeleteModal() {
+    show.value = false
+    show_delete_warning.value = true
+}
+
+function closeEditModal() {
+    function dropEnter(ev: any) {
+        drop(ev, file_upload)
+    }
+    const file_upload = document.getElementById('file_upload') as HTMLInputElement
+    const dropbox = document.getElementById('dropbox') as HTMLDivElement
+    dropbox.removeEventListener("dragenter", dragenter, false);
+    dropbox.removeEventListener("dragover", dragover, false);
+    dropbox.removeEventListener("drop", dropEnter, false);
+    total.value = 0
+    if (form.value.deletedImages.length > 0) {
+        listings.value.listings[currentIndex.value].images.push(...form.value.deletedImages)
+    }
+
+    show.value = false
+    show_edit_modal.value = false
 
 }
+
 function showEditModal() {
     show.value = false
     show_edit_modal.value = true
@@ -108,6 +152,7 @@ function fileUpload(e: MouseEvent) {
     input.click()
 
 }
+
 function removePhoto(ev: MouseEvent) {
     const fileInput = document.querySelector('#file_upload') as HTMLInputElement
     const btn = ev.currentTarget as HTMLButtonElement
@@ -125,39 +170,59 @@ async function submit() {
     if (filesArr.value.length > 0) {
         form.value.inputFiles = filesArr.value
     }
-    // if (validation(form.value, total.value)) {
-    //     const { error, data } = await handleRequest('put', '/listings/update/' + listings.value.listings[currentIndex.value].id, form.value, 'multpartForm')
-    //     if (!error) {
-    //         toastNotification('Success', data.message)
-    //         show_edit_modal.value = false
-    //         form.value = initialFormValue
-    //         filesArr.value.length = 0
-    //         imgSrc.value = []
+    if (validation(form.value, total.value)) {
+        const input = <HTMLInputElement>document.getElementById('file_upload')
+        updateLoading.value = true
+        const { error, data } = await handleRequest('post', '/listings/update/' + listings.value.listings[currentIndex.value].id, form.value, 'multpartForm')
+        if (!error) {
+            toastNotification('Success', data.message)
+            show_edit_modal.value = false
+            resetFields()
+            filesArr.value.length = 0
+            imgSrc.value = []
+            input.files = null
+            input.value = ''
+        }
+        else {
+            toastNotification('Error', data.message)
+        }
+        updateLoading.value = false
+    }
 
-    //     }
-    //     else {
-    //         toastNotification('Error', data.message)
-    //     }
-    // }
-    console.log(form.value);
 
 }
 
 async function deleteConfirmed() {
+    deleteLoading.value = true
     const { data, error } = await handleRequest('delete', '/listings/delete/'.concat(listings.value.listings[currentIndex.value].id))
+
     if (!error) {
+        const res = await handleRequest('get', '/listings/user/listings')
+        if (!res.error) {
+            listings.value.listings = res.data.data.listings
+            listings.value.hasMorePages = res.data.data.hasMorePages
+            useState('userListings').value = res.data
+        }
+        currentIndex.value = 0
+        show_delete_warning.value = false
         toast('Success', 'Listing was deleted successfully!')
     } else {
         toast('Error', data.message)
     }
-
+    deleteLoading.value = false
+}
+async function moreListing() {
+    loadmore.value = true
+    const query = <{ [x: string]: string }>{}
+    query['page'] = page.value.toString()
+    const { data, error } = await handleRequest('get', '/listings/user/listings', query)
+    if (!error) {
+        listings.value.listings = [...listings.value.listings, ...data.data.listings]
+        listings.value.hasMorePages = data.data.hasMorePages
+    }
+    loadmore.value = false
 }
 
-
-onMounted(() => {
-
-
-})
 </script>
 
 <template>
@@ -286,6 +351,14 @@ onMounted(() => {
                                 </span>
                             </Card>
                         </template>
+                        <div v-if="loadmore" class="flex flex-col items-center">
+                            <Spinner class="text-2xl" />
+                        </div>
+                        <div class="h-40 w-full">
+
+                        </div>
+                        <div id="loadmore">
+                        </div>
                     </div>
                     <div class="px-3 overflow-auto scrollbar_invisible -lg:hidden">
                         <h2 class="mb-4 text-2xl font-bold">{{ listings.listings[currentIndex].title }}</h2>
@@ -343,12 +416,13 @@ onMounted(() => {
         </div>
         <template v-if="listings.listings && listings.listings.length > 0">
             <!-- edit modal -->
-            <AuthUserListingsEditModal :show_edit_modal :form :images="listings.listings[currentIndex].images"
-                @file-upload="fileUpload" @close-edit-modal="closeEditModal" @remove-photo="removePhoto"
-                @delete-photo="deletePhoto" @submit="submit" />
+            <AuthUserListingsEditModal :loading="updateLoading" :show_edit_modal :form
+                :images="listings.listings[currentIndex].images" @file-upload="fileUpload"
+                @close-edit-modal="closeEditModal" @remove-photo="removePhoto" @delete-photo="deletePhoto"
+                @submit="submit" />
             <!-- show delete modal -->
-            <AuthUserListingsDeleteModal :show_delete_warning @close-delete-warning="closeDeleteWarning"
-                @delete-confirmed="deleteConfirmed" />
+            <AuthUserListingsDeleteModal :loading="deleteLoading" :show_delete_warning
+                @close-delete-warning="closeDeleteWarning" @delete-confirmed="deleteConfirmed" />
             <!-- show primary modal -->
             <AuthUserListingsPrimaryModal @close-modal="closeModal" @show-delete-modal="showDeleteModal"
                 @show-edit-modal="showEditModal" :closeable :show :images="listings.listings[currentIndex].images"

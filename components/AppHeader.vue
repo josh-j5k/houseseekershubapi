@@ -5,14 +5,19 @@ import type { user } from '~/types/user';
 const user = computed(() => useState('user').value as user)
 const toggled = ref(false)
 const dropdownToggled = ref(false)
-const activeLinkClass = "text-accent font-bold lg:border-b-2 lg:pb-[1px] lg:border-accent"
+const activeLinkClass = "text-accent font-bold lg:before:content-[''] lg:before:absolute lg:before:w-full lg:before:h-0.5 lg:before:bottom-0 lg:before:bg-accent"
 
+const hover = "relative hover:after:content-[''] hover:after:absolute hover:after:w-full hover:after:h-0.5 hover:after:bottom-0 hover:after:bg-accent hover:after:left-0"
 function navToggle() {
     toggled.value = !toggled.value
+
     if (toggled.value === true) {
         document.body.classList.add('overflow-y-hidden')
+        setTimeout(() => {
+            document.documentElement.addEventListener('click', closeDropdown)
+        }, 10);
     } else {
-
+        document.documentElement.removeEventListener('click', closeDropdown)
         document.body.classList.remove('overflow-y-hidden')
 
     }
@@ -20,15 +25,20 @@ function navToggle() {
 
 function closeDropdown(ev: MouseEvent) {
     const element = ev.target as HTMLElement
+
     if (dropdownToggled.value === true && !element.closest('#dashboard_dropdown-toggle')) {
         dropdownToggled.value = false
 
+    }
+    if (element.id !== 'nav-container' && !element.closest('#dashboard_dropdown-toggle')) {
+        toggled.value = false
+        document.documentElement.removeEventListener('click', closeDropdown)
+        document.body.classList.remove('overflow-y-hidden')
     }
 }
 
 
 onMounted(() => {
-    document.documentElement.addEventListener('click', closeDropdown)
 
 })
 onUnmounted(() => {
@@ -50,30 +60,26 @@ onUnmounted(() => {
                         class="fas fa-bars fa-2xl text-accent"></i></span>
                 <span :class="toggled ? 'opacity-100' : 'opacity-0'"><i class="fas fa-xmark fa-xl"></i></span>
             </button>
-            <div
+            <div id="nav-container"
                 class="flex lg:items-center lg:justify-between -lg:fixed inset-0 -lg:bg-white -lg:shadow  -lg:text-gray-800 transition-transform duration-500 -lg:flex-col -lg:p-4 -lg:translate-x-full">
                 <nav id="primary-nav">
                     <ul class="flex gap-4 h-full -lg:flex-col -lg:pt-16 -lg:px-8 text-sm -lg:text-xl -lg:font-bold">
-                        <li :class="[$route.name === 'index' && activeLinkClass]"
-                            class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'index' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="/">Home</NuxtLink>
                         </li>
-                        <li :class="[$route.name === 'listings' && activeLinkClass]"
-                            class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'listings' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="/listings">Listings</NuxtLink>
                         </li>
-                        <li class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'new-homes' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="#">New Homes</NuxtLink>
                         </li>
-                        <li class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'commercial' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="#">Commercial</NuxtLink>
                         </li>
-                        <li :class="[$route.name === 'contact' && activeLinkClass]"
-                            class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'contact' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="/contact">Contact Us</NuxtLink>
                         </li>
-                        <li :class="[$route.name === 'about' && activeLinkClass]"
-                            class="hover:border-b-2 border-accent">
+                        <li :class="[$route.name === 'about' && activeLinkClass, `${hover}`]">
                             <NuxtLink to="/about">About Us</NuxtLink>
                         </li>
                     </ul>
