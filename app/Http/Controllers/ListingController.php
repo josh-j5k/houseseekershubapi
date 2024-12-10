@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Listing;
-use Illuminate\Support\Str;
+use App\Models\Bookmark;
 
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\Sanctum;
 use App\Jobs\ImageProcessingJob;
@@ -15,9 +16,10 @@ use App\Helpers\ImageCompressHelper;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\ListingsRequest;
 use App\Http\Resources\ListingResource;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Requests\ListingStoreRequest;
-use App\Models\Bookmark;
+use App\Http\Requests\ListingUpdateRequest;
 use Illuminate\Auth\Access\AuthorizationException;
 
 class ListingController extends Controller
@@ -130,11 +132,11 @@ class ListingController extends Controller
             $limit = (int) $request->limit ?: 8;
             $page = (int) $request->page ?: 1;
             $total = $user->listings()->count();
-
+            $offset = ($page - 1) * $limit;
             $hasMorePages = ($limit * $page) < $total ? true : false;
-            $listings = Listing::where('user_id', $user->id)->orderByDesc('created_at')
-                ->when($page > 1, function (Builder $builder) use ($page, $limit) {
-                    $builder->offset($page * $limit);
+            $listings = $user->listings()->orderByDesc('created_at')
+                ->when($page > 1, function (Builder $builder) use (&$offset) {
+                    $builder->offset($offset);
                 })->limit($limit)->get();
 
             $data = ListingResource::collection($listings);
@@ -155,7 +157,9 @@ class ListingController extends Controller
         try {
             DB::beginTransaction();
             $user = Auth::user();
-
+            /**
+             * @var Listing
+             */
             $listing = Listing::create([
                 'user_id' => $user->id,
                 'title' => $request->title,
@@ -169,16 +173,14 @@ class ListingController extends Controller
             $slug = $this->slug($listing->id, $listing->title, $listing->location);
             $listing->update(['slug' => $slug]);
 
-            // ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
             foreach ($request->inputFiles as $file_input) {
-
                 $folder = date("Y");
                 $subFolders = date("m");
-
-                $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
-
-                $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
+                $dir = "images/$folder/$subFolders";
+                $path = Storage::disk('public')->putFile($dir, $file_input);
+                $listing->uploads()->create(['url' => $path, 'description', 'Listing Image']);
             }
+            // ImageProcessingJob::dispatch($listing, $images, 'Listing Image')->onQueue('high');
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -191,11 +193,14 @@ class ListingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(ListingStoreRequest $request, $id, ): JsonResponse
+    public function update(ListingUpdateRequest $request, $id): JsonResponse
     {
         try {
             DB::beginTransaction();
             $user = Auth::user();
+            /**
+             * @var Listing
+             */
             $listing = Listing::where('id', $id)->where('user_id', $user->id)->first();
             if (!$listing) {
                 throw new AuthorizationException();
@@ -209,49 +214,54 @@ class ListingController extends Controller
                 'description' => $request->description,
             ];
             $listing->update($form_fields);
-            if (count($request->deletedImages) > 0) {
+            if ($request->deletedImages) {
                 foreach ($request->deletedImages as $url) {
                     $endingIndex = strpos($url, 'images');
                     $substring = substr($url, $endingIndex);
                     $listing->uploads()->where('url', $substring)->delete();
-                    if (is_dir(public_path($substring))) {
-                        unlink(public_path($substring));
-                    }
+                    Storage::disk('public')->delete($substring);
                 }
             }
-            // ImageProcessingJob::dispatch($listing, $request->inputFiles)->onQueue('high');
-            if (count($request->inputFiles) > 0) {
+            if ($request->inputFiles) {
                 foreach ($request->inputFiles as $file_input) {
-
                     $folder = date("Y");
                     $subFolders = date("m");
-
-                    $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
-
-                    $listing->uploads()->create(['url' => $url, 'description' => 'Listing Image']);
+                    $dir = "images/$folder/$subFolders";
+                    $path = Storage::disk('public')->putFile($$dir, $file_input);
+                    $listing->uploads()->create(['url' => $path, 'description', 'Listing Image']);
                 }
-            }
 
+                // ImageProcessingJob::dispatch($listing, $images, 'Listing Image');
+            }
             DB::commit();
         } catch (\Throwable $th) {
             DB::rollBack();
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('success', 'Listing updated successfully');
+        return $this->response('success', 'Listing updated successfully', $request->all());
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($ref): JsonResponse
+    public function destroy($id): JsonResponse
     {
         try {
             DB::beginTransaction();
             $user = Auth::user();
-            $listing = Listing::where('ref', $ref)->where('user_id', $user->id)->first();
+            /**
+             * @var Listing
+             */
+            $listing = Listing::where('id', $id)->where('user_id', $user->id)->first();
             if (!$listing) {
                 throw new AuthorizationException();
             }
+            foreach ($listing->uploads()->get() as $upload) {
+                $endingIndex = strpos($upload->url, 'images');
+                $substring = substr($upload->url, $endingIndex);
+                Storage::disk('public')->delete($substring);
+            }
+            $listing->uploads()->delete();
             $listing->delete();
             DB::commit();
         } catch (\Throwable $th) {

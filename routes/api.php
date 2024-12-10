@@ -35,8 +35,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
     Route::prefix('listings')->group(function () {
         Route::post('/store', [ListingController::class, 'store'])->name('listings.store');
-        Route::put('/update/{id}', [ListingController::class, 'update'])->name('listings.update');
-        Route::delete('/delete/{id}', [ListingController::class, 'update'])->name('listings.delete');
+        Route::post('/update/{id}', [ListingController::class, 'update'])->name('listings.update');
+        Route::delete('/delete/{id}', [ListingController::class, 'destroy'])->name('listings.delete');
         Route::get('/user/listings', [ListingController::class, 'userListings'])->name('user.listings');
     });
 });

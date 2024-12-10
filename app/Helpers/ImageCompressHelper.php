@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use Illuminate\Support\Facades\Storage;
+
 class ImageCompressHelper
 {
 
@@ -10,38 +12,35 @@ class ImageCompressHelper
     {
 
 
-
+        $path = public_path($original_image);
         $dir = $file_folder ? "images/$folder/$subfolder/$file_folder" : "images/$folder/$subfolder";
-
-
 
         if (!is_dir($dir)) {
             mkdir($dir, recursive: true);
         }
-        $imageType = getimagesize($original_image)['mime'];
+        $imageType = getimagesize($path)['mime'];
         $img = null;
         if ($imageType === 'image/png') {
-            $img = imagecreatefrompng($original_image);
+            $img = imagecreatefrompng($path);
         } elseif ($imageType === 'image/jpeg') {
-            $img = imagecreatefromjpeg($original_image);
-        } elseif ($imageType === 'image/webp') {
-            $img = imagecreatefromwebp($original_image);
+            $img = imagecreatefromjpeg($path);
         }
 
-        $img_name = $original_image->hashName();
+
 
         $MAX_WIDTH = $max_width;
 
         imagepalettetotruecolor($img);
-        $scale_size = $MAX_WIDTH / getimagesize($original_image)[0];
+        $scale_size = $MAX_WIDTH / getimagesize($path)[0];
 
-        $MAX_HEIGHT = getimagesize($original_image)[1] * $scale_size;
+        $MAX_HEIGHT = getimagesize($path)[1] * $scale_size;
         $resized_img = imagescale($img, $MAX_WIDTH, $MAX_HEIGHT);
-        imagewebp($resized_img, "$dir/$img_name", $quality);
+        // Storage::disk('public')->putFile($dir, );
+        imagewebp($resized_img, $dir, $quality);
         imagedestroy($img);
         imagedestroy($resized_img);
 
-        $url = "$dir/$img_name";
+        $url = $dir;
         return $url;
     }
 }

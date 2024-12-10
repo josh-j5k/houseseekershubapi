@@ -44,12 +44,6 @@ return [
             'visibility' => 'public',
             'throw' => false,
         ],
-        'private' => [
-            'driver' => 'local',
-            'root' => storage_path('app/private'),
-            'visibility' => 'private',
-            'throw' => false,
-        ],
         'images' => [
             'driver' => 'local',
             'root' => storage_path('app/public/images'),
@@ -57,7 +51,6 @@ return [
             'visibility' => 'public',
             'throw' => false,
         ],
-
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -85,6 +78,7 @@ return [
 
     'links' => [
         public_path('images') => storage_path('app/public/images'),
+        public_path('temp') => storage_path('app/public/temp'),
     ],
 
 ];

@@ -2,15 +2,13 @@
     # Introduction
 
     Name: {{$data['name']}}
+
     Email: {{$data['email']}}
 
-    <x-mail::panel>
-        Category: {{$data['category']}}
+    Category: {{$data['category']}}
 
-        Description:
-
-        {{$data['description']}}
-    </x-mail::panel>
+    Description:
+    {{$data['description']}}
 
     Thanks,<br>
     {{ config('app.name') }}
