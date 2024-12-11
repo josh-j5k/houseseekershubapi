@@ -26,7 +26,7 @@ class BookmarkController extends Controller
 
             $listings[] = [
                 'id' => $bookmark->listing->id,
-                "ref" => $bookmark->listing->ref,
+                "slug" => $bookmark->listing->slug,
                 "title" => $bookmark->listing->title,
                 "property_status" => $bookmark->listing->property_status,
                 "property_type" => $bookmark->listing->property_type,
