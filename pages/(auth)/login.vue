@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import axios from 'axios';
-
-
+import type { user } from '~/types/user';
 definePageMeta({
-    middleware: 'authenticated'
+    middleware: 'auth'
 })
+
+const authUser = <Ref<user | undefined>>useState('user')
+
 const config = useRuntimeConfig()
 const { handleRequest, btnLoading } = useBackend()
 const loading = ref(false)
@@ -47,7 +49,7 @@ async function authenticateUser() {
         }
         localStorage.removeItem('state')
         localStorage.setItem('user', JSON.stringify(data.data))
-        useState('user', () => data.data)
+        authUser.value = data.data
         navigateTo({ name: 'au-id', params: { id: data.data.user.ref } })
     }
 
@@ -61,8 +63,6 @@ if (import.meta.client) {
 
     }
 }
-// console.log(query, import.meta.env.VITE_GOOGLE_CLIENT_ID);
-
 
 const submit = async () => {
 
@@ -79,8 +79,8 @@ const submit = async () => {
     }
 
     localStorage.setItem('user', JSON.stringify({ access_token: data.access_token, user: data.user }))
-    let auUser = { user: data.user, access_token: data.access_token }
-    useState('user', () => auUser)
+    let user = { user: data.user, access_token: data.access_token }
+    authUser.value = user
 
     navigateTo({ name: 'au-id', params: { id: data.user.ref } })
 }

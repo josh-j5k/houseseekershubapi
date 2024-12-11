@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import type { user } from '~/types/user';
+
 definePageMeta({
-    middleware: 'authenticated'
+    middleware: 'auth'
 })
 const { handleRequest, btnLoading } = useBackend()
 const status = ref({
     error: false,
     message: null
 })
+const authUser = <Ref<user | undefined>>useState('user')
 const form = reactive({
     name: '',
     email: '',
@@ -26,8 +29,8 @@ const submit = async () => {
         return
     }
     localStorage.setItem('user', JSON.stringify({ access_token: data.access_token, user: data.user }))
-    let auUser = { user: data.user, access_token: data.access_token }
-    useState('user', () => auUser)
+    let user = { user: data.user, access_token: data.access_token }
+    authUser.value = user
 
     navigateTo({ name: 'au-id', params: { id: data.user.ref } })
 };

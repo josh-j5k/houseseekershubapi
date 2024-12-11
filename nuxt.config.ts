@@ -2,7 +2,7 @@
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  ssr: true,
+  ssr: false,
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
@@ -12,15 +12,11 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  // routeRules: {
-  //   '/login': { prerender: false },
-  //   '/register': { prerender: false },
-  //   '/contact': { prerender: false },
-  // },
+
   runtimeConfig: {
     public: {
-      apiUrl: "http://localhost:8000",
-      frontendUrl: "http://localhost:3000",
+      apiUrl: "https://api.houseseekershub.com",
+      frontendUrl: "https://houseseekershub.com",
 
     }
 

@@ -8,7 +8,7 @@ const { drop, dragenter, dragover, assignFiles, total, imgSrc, deleteFile, files
 const { formErrors, validation } = useListingFormValidator()
 const { closeSuggestion, handleRequest, suggestions } = usePlaces()
 
-const loading = ref(false)
+const loading = <Ref<boolean>>useState('overlayLoader')
 const user = useState('user').value as user
 
 const form = ref({
@@ -78,9 +78,6 @@ async function submit() {
     const { handleRequest } = useBackend()
     form.value.title.trim()
     form.value.description.trim()
-
-
-
     if (user == undefined) {
         return toast('Error', 'You need to be logged in to perform this action')
     }
@@ -155,11 +152,6 @@ useSeoMeta({
 
 
 <template>
-
-    <template v-if="loading">
-        <Preloader />
-    </template>
-
     <section
         class="w-full min-h-screen bg-gray-100 grid grid-cols-[30%_70%] -lg:grid-cols-1 justify-center items-center pt-0 gap-4">
 
