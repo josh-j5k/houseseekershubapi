@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->integer('uploadable_id');
             $table->string('uploadable_type');
-            $table->string('url');
+            $table->string('path');
             $table->string('description')->nullable();
             $table->timestamps();
         });

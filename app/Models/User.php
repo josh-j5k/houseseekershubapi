@@ -6,14 +6,13 @@ namespace App\Models;
 
 
 
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Traits\UserRelationsTrait;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -47,10 +46,13 @@ class User extends Authenticatable
         'remember_token',
         'provider_id',
         'provider',
+        'avatar',
         "created_at",
         "updated_at"
     ];
-
+    protected $appends = [
+        'picture'
+    ];
     /**
      * The attributes that should be cast.
      *
@@ -60,10 +62,15 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    // public function avatar(): Atrribute {
-    //     return Attribute::get(funtion() {
 
-    //     })
-    // }
+    /**
+     * @return Attribute
+     */
+    public function picture(): Attribute
+    {
+        return Attribute::make(function () {
+            $this->avatar !== null && $this->provider !== null ? $this->avatar : ($this->avatar ? config('app.url') . "/$this->avatar" : $this->avatar);
+        });
+    }
 
 }

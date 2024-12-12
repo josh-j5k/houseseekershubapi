@@ -6,9 +6,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\BookmarkController;
-
-
-
+use App\Http\Controllers\ProfileController;
 
 Route::prefix('listings')->group(function () {
     Route::get('/', [ListingController::class, 'index'])->name('listings');
@@ -31,6 +29,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [MessageController::class, 'index']);
         Route::get('/{message}', [MessageController::class, 'chats']);
         Route::post('/', [MessageController::class, 'store']);
+
+    });
+    Route::prefix("profile")->group(function () {
+        Route::post('/update/{ref}/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::post('/update/{ref}/user', [ProfileController::class, 'update']);
+
 
     });
     Route::prefix('listings')->group(function () {

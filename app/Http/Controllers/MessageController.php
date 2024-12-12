@@ -37,7 +37,7 @@ class MessageController extends Controller
 
                     'latest_message_sender' => User::where('id', $message->senders_id)->value('ref'),
                     'recipient' => [
-                        'avatar' => $recipient->avatar,
+                        'picture' => $recipient->avatar && $recipient->provider ? $recipient->avatar : ($recipient->avatar ? config('app.url') . "/$recipient->avatar" : null),
                         'name' => $recipient->name,
                         'ref' => $recipient->ref
                     ],
@@ -63,7 +63,16 @@ class MessageController extends Controller
         ];
 
         $recipient = User::where('ref', $ref)->first();
-        $messages['recipient'] = ['name' => $recipient->name, 'avatar' => $recipient->avatar, 'ref' => $recipient->ref];
+        $messages['recipient'] = ['name' => $recipient->name, 'ref' => $recipient->ref];
+        $messages['recipient']['picture'] = $recipient->avatar;
+        if ($recipient->avatar !== null && $recipient->provider !== null) {
+            $messages['recipient']['picture'] = $recipient->avatar;
+
+        } elseif ($recipient->avatar !== null) {
+            $messages['recipient']['picture'] = config('app.url') . "/$recipient->avatar";
+        } else {
+            $messages['recipient']['picture'] = null;
+        }
         Message::orderBy('created_at', 'asc')->where([['senders_id', $user->id], ['receivers_id', $recipient->id]])->orWhere([['receivers_id', $user->id], ['senders_id', $recipient->id]])->each(function ($message) use (&$messages, $user, $recipient) {
 
             $created_at = new Carbon($message->created_at);
@@ -110,14 +119,13 @@ class MessageController extends Controller
                 'ref' => Str::uuid()
             ]);
             if ($request->hasFile('message_pictures')) {
-                foreach ($request->message_pictures as $file_input) {
+                foreach ($request->message_pictures as $image) {
 
-                    $folder = date("Y");
-                    $subFolders = date("m");
-
-                    $url = ImageCompressHelper::compress($file_input, 1080, 100, $folder, $subFolders);
-
-                    $message->uploads()->create(['url' => $url, 'description' => 'message picture']);
+                    $yearDir = date("Y");
+                    $monthDir = date("m");
+                    $dir = "images/$yearDir/$monthDir/messages";
+                    $path = Storage::disk('public')->putFile($dir, $image);
+                    $message->uploads()->create(['url' => $path, 'description' => 'message picture']);
                 }
             }
             $created_at = new Carbon($message->created_at);

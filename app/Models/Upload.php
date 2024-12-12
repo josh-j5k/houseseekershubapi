@@ -10,7 +10,7 @@ class Upload extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'url',
+        'path',
         'description'
     ];
     protected $hidden = [

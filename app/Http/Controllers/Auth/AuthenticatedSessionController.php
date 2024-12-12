@@ -62,8 +62,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): JsonResponse
     {
-
-        Auth::user()->tokens()->delete();
+        /**
+         * @var User
+         */
+        $user = Auth::user();
+        $user->tokens()->delete();
 
         $request->session()->invalidate();
 

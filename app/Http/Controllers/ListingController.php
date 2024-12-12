@@ -174,11 +174,11 @@ class ListingController extends Controller
             $listing->update(['slug' => $slug]);
 
             foreach ($request->inputFiles as $file_input) {
-                $folder = date("Y");
-                $subFolders = date("m");
-                $dir = "images/$folder/$subFolders";
+                $yearDir = date("Y");
+                $monthDir = date("m");
+                $dir = "images/$yearDir/$monthDir/listings";
                 $path = Storage::disk('public')->putFile($dir, $file_input);
-                $listing->uploads()->create(['url' => $path, 'description', 'Listing Image']);
+                $listing->uploads()->create(['path' => $path, 'description', 'Listing Image']);
             }
             // ImageProcessingJob::dispatch($listing, $images, 'Listing Image')->onQueue('high');
             DB::commit();
@@ -217,17 +217,18 @@ class ListingController extends Controller
             if ($request->deletedImages) {
                 foreach ($request->deletedImages as $url) {
                     $endingIndex = strpos($url, 'images');
-                    $substring = substr($url, $endingIndex);
-                    $listing->uploads()->where('url', $substring)->delete();
-                    Storage::disk('public')->delete($substring);
+                    $path = substr($url, $endingIndex);
+                    $listing->uploads()->where('path', $path)->delete();
+                    Storage::disk('public')->delete($path);
+
                 }
             }
             if ($request->inputFiles) {
                 foreach ($request->inputFiles as $file_input) {
-                    $folder = date("Y");
-                    $subFolders = date("m");
-                    $dir = "images/$folder/$subFolders";
-                    $path = Storage::disk('public')->putFile($$dir, $file_input);
+                    $yearDir = date("Y");
+                    $monthDir = date("m");
+                    $dir = "images/$yearDir/$monthDir/listings";
+                    $path = Storage::disk('public')->putFile($dir, $file_input);
                     $listing->uploads()->create(['url' => $path, 'description', 'Listing Image']);
                 }
 
@@ -257,9 +258,9 @@ class ListingController extends Controller
                 throw new AuthorizationException();
             }
             foreach ($listing->uploads()->get() as $upload) {
-                $endingIndex = strpos($upload->url, 'images');
-                $substring = substr($upload->url, $endingIndex);
-                Storage::disk('public')->delete($substring);
+                $endingIndex = strpos($upload->path, 'images');
+                $path = substr($upload->path, $endingIndex);
+                Storage::disk('public')->delete($path);
             }
             $listing->uploads()->delete();
             $listing->delete();
