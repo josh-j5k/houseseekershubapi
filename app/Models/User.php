@@ -68,9 +68,10 @@ class User extends Authenticatable
      */
     public function picture(): Attribute
     {
-        return Attribute::make(function () {
-            $this->avatar !== null && $this->provider !== null ? $this->avatar : ($this->avatar ? config('app.url') . "/$this->avatar" : $this->avatar);
-        });
+        $avatar = $this->avatar && $this->provider ? $this->avatar : ($this->avatar ? config('app.url') . "/$this->avatar" : null);
+        return Attribute::make(
+            get: fn() => $avatar
+        );
     }
 
 }

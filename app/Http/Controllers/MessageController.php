@@ -37,7 +37,7 @@ class MessageController extends Controller
 
                     'latest_message_sender' => User::where('id', $message->senders_id)->value('ref'),
                     'recipient' => [
-                        'picture' => $recipient->avatar && $recipient->provider ? $recipient->avatar : ($recipient->avatar ? config('app.url') . "/$recipient->avatar" : null),
+                        'picture' => $recipient->picture,
                         'name' => $recipient->name,
                         'ref' => $recipient->ref
                     ],
@@ -61,18 +61,12 @@ class MessageController extends Controller
             "recipient" => [],
             'messages' => []
         ];
-
+        /**
+         * @var User
+         */
         $recipient = User::where('ref', $ref)->first();
-        $messages['recipient'] = ['name' => $recipient->name, 'ref' => $recipient->ref];
-        $messages['recipient']['picture'] = $recipient->avatar;
-        if ($recipient->avatar !== null && $recipient->provider !== null) {
-            $messages['recipient']['picture'] = $recipient->avatar;
+        $messages['recipient'] = ['name' => $recipient->name, 'ref' => $recipient->ref, 'picture' => $recipient->picture];
 
-        } elseif ($recipient->avatar !== null) {
-            $messages['recipient']['picture'] = config('app.url') . "/$recipient->avatar";
-        } else {
-            $messages['recipient']['picture'] = null;
-        }
         Message::orderBy('created_at', 'asc')->where([['senders_id', $user->id], ['receivers_id', $recipient->id]])->orWhere([['receivers_id', $user->id], ['senders_id', $recipient->id]])->each(function ($message) use (&$messages, $user, $recipient) {
 
             $created_at = new Carbon($message->created_at);

@@ -38,6 +38,6 @@ class AuthenticatedWithSocialController extends Controller
             DB::rollBack();
             return $this->response('error', $th->getMessage(), statusCode: 406);
         }
-        return $this->response('error', 'successfully login', ['user' => ['name' => $user->name, 'email' => $user->email, 'ref' => $user->ref, 'picture' => $user->avatar], 'access_token' => $token->plainTextToken], statusCode: 202);
+        return $this->response('error', 'successfully login', ['user' => $user, 'access_token' => $token->plainTextToken], statusCode: 202);
     }
 }

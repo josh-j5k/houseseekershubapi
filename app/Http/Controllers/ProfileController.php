@@ -43,7 +43,7 @@ class ProfileController extends Controller
              * @var User
              */
             $user = Auth::user();
-            if (Auth::user()->avatar) {
+            if (Auth::user()->avatar && Storage::disk('public')->exists(Auth::user()->avatar)) {
                 Storage::disk('public')->delete(Auth::user()->avatar);
             }
             $yearDir = date("Y");
