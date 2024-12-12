@@ -3,7 +3,6 @@ export default async function () {
 
     useState('overlayLoader').value = true
     const { data, error } = await handleRequest('post', '/logout')
-
     if (!error) {
         if (useRoute().meta.middleware !== undefined) {
             navigateTo('/login')

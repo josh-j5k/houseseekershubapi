@@ -15,9 +15,15 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: "http://localhost:8000",
+      apiUrl: "api.houseseekershub.com",
       frontendUrl: "https://houseseekershub.com",
-
+      googleClientId: "",
+      googleClientSecret: "",
+      googleOauth2Endpoint: "",
+      googleOauth2Token: "",
+      googleOauth2CallbackUrl: "",
+      googlePlaces: "",
+      googlePlacesApiKey: ""
     }
 
   }

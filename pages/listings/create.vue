@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 import type { user } from '~/types/user';
 import toast from '~/utils/toastNotification';
 
@@ -21,7 +22,6 @@ const form = ref({
     inputFiles: <any>[]
 
 })
-
 
 const currentIndex = ref(0)
 function resetFields() {
@@ -49,8 +49,8 @@ function setLocation(e: string) {
     form.value.location = e
     closeSuggestion()
 }
-function setToPascalCase() {
-    form.value.title = form.value.title.trim().split(' ').map(item => item.charAt(0).toUpperCase().concat(item.substring(1))).join(' ')
+function capitalize() {
+    form.value.title = toPascalCase(form.value.title)
 }
 function removePhoto(ev: MouseEvent) {
     const fileInput = document.querySelector('#file_upload') as HTMLInputElement
@@ -189,7 +189,7 @@ useSeoMeta({
                     <p v-if="formErrors.fileError" class="text-red-500"> Please upload at least one photo.</p>
                     <div class="flex flex-col">
                         <label for="listing_title" class="capitalize font-bold text-lg mb-3">listing title</label>
-                        <input @change="setToPascalCase" v-model="form.title" type="text" name="listing title"
+                        <input @change="capitalize" v-model="form.title" type="text" name="listing title"
                             id="listing_title" placeholder="Enter listing title" class="input"
                             :class="[formErrors.titleError ? 'border-red-500' : '']">
                     </div>

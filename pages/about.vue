@@ -42,7 +42,8 @@ useSeoMeta({
                 <p>
                     As well as Cameroonian residential properties, you can also search thousands of overseas properties
                     for sale
-                    and commercial CMR properties to rent and for sale, all from the comfort of your sofa or, by using
+                    and commercial Cameroonian properties to rent and for sale, all from the comfort of your sofa or, by
+                    using
                     our mobile app, when you’re on-the-go.
                 </p>
                 <p>

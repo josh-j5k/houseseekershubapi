@@ -44,7 +44,7 @@ if (storedListings == undefined) {
     listings.value = storedListings.listings.slice(0, 4)
 }
 
-const title = "House, properties to rent and for sale"
+const title = "House, Properties For Rent And For Sale"
 const description = "Find the perfect house for you only on house seekers hub. A marketplace where users can rent or sell houses"
 useHead({
     title,

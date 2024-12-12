@@ -133,9 +133,7 @@ onUnmounted(() => {
                                             class="w-8 aspect-square flex justify-center items-center bg-slate-900 rounded-full text-white border border-accent">
                                             <i class="fas fa-user"></i>
                                         </span>
-                                        <!-- <span id="user_name">
-                                            {{ authUser.user.name.split(" ")[0] }}
-                                        </span> -->
+
                                         <span id="dropdown-icon" class="text-sm">
                                             <i class="fas fa-caret-down"></i>
                                         </span>
@@ -145,14 +143,15 @@ onUnmounted(() => {
                                         :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
 
                                         <NuxtLink :to="{ name: 'au-id', params: { id: authUser.user.ref } }"
-                                            class="capitalize">
+                                            class="capitalize cursor-pointer hover:text-accent">
                                             dashboard
                                         </NuxtLink>
                                         <NuxtLink :to="{ name: 'au-id-profile', params: { id: authUser.user.ref } }"
-                                            class="capitalize">
+                                            class="capitalize cursor-pointer hover:text-accent">
                                             profile
                                         </NuxtLink>
-                                        <button @click="logout" as="button" class="capitalize cursor-pointer">
+                                        <button @click="logout" as="button"
+                                            class="capitalize cursor-pointer hover:text-accent">
                                             logout
                                         </button>
 

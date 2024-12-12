@@ -2,7 +2,7 @@
 import type { user } from '~/types/user';
 
 
-const user = computed(() => useState('user').value as user)
+const user = computed(() => useState('user').value as user | undefined)
 const toggled = ref(false)
 const dropdownToggled = ref(false)
 const activeLinkClass = "text-accent font-bold lg:before:content-[''] lg:before:absolute lg:before:w-full lg:before:h-0.5 lg:before:bottom-0 lg:before:bg-accent"
@@ -139,18 +139,19 @@ onUnmounted(() => {
                                     :class="[dropdownToggled ? 'flex opacity-100' : 'hidden opacity-0']">
                                     <nav>
                                         <ul class="flex flex-col gap-4 ">
-                                            <li class="capitalize">
+                                            <li class="capitalize cursor-pointer hover:text-accent">
                                                 <NuxtLink :to="{ name: 'au-id', params: { id: user.user.ref } }">
                                                     dashboard
                                                 </NuxtLink>
                                             </li>
-                                            <li class="capitalize">
+                                            <li class="capitalize cursor-pointer hover:text-accent">
                                                 <NuxtLink
                                                     :to="{ name: 'au-id-profile', params: { id: user.user.ref } }">
                                                     profile
                                                 </NuxtLink>
                                             </li>
-                                            <li role="button" @click="logout" class="capitalize cursor-pointer">
+                                            <li role="button" @click="logout"
+                                                class="capitalize cursor-pointer hover:text-accent">
                                                 logout
                                             </li>
                                         </ul>
