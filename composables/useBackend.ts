@@ -8,9 +8,10 @@ type query = undefined | any
 type contentType = 'json' | 'multpartForm'
 
 
-const base = import.meta.env.VITE_API_URL
 
 export default function useBackend() {
+    const config = useRuntimeConfig()
+    const base = config.public.apiUrl
     const loading = ref(true)
     const btnLoading = ref(false)
     const headers = <{ [x: string]: string }>{

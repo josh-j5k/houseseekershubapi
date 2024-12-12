@@ -2,12 +2,14 @@ import axios from "axios"
 import type { suggestions } from "~/types/listings"
 
 
-const url = import.meta.env.VITE_GOOGLE_PLACES
-const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY
+
 const includedRegionCodes = ["cm"]
 let intialValue = <suggestions>[]
 const suggestions = ref(<suggestions>[])
 export default function usePlaces() {
+    const config = useRuntimeConfig()
+    const url = config.public.googlePlaces
+    const apiKey = config.public.googlePlacesApiKey
     const headers = { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey }
     async function handleRequest(input: string) {
 

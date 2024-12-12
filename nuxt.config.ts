@@ -12,7 +12,12 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-
+  nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: ["/sitemap.xml", "/robots.txt"],
+    },
+  },
   runtimeConfig: {
     public: {
       apiUrl: "api.houseseekershub.com",
