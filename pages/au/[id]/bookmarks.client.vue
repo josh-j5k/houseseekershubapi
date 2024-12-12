@@ -51,7 +51,7 @@ fetch()
                 </div>
             </template>
             <template v-else>
-                <div class="grid grid-cols-2 -md:grid-cols-1 gap-4 p-8 -md:p-4">
+                <div v-if="listings.length > 0" class="grid grid-cols-2 -md:grid-cols-1 gap-4 p-8 -md:p-4">
                     <template v-for="(listing, index) in listings">
 
                         <Card role="button"
@@ -102,7 +102,20 @@ fetch()
                         </Card>
 
                     </template>
+                    >
                 </div>
+                <template v-else>
+
+                    <NuxtLink to="/listings" class="text-accent text-center pt-8 block">
+                        <span>
+                            Bookmark your first listing
+                        </span>
+                        <span>
+                            <i class="fas fa-circle-arrow-right"></i>
+                        </span>
+                    </NuxtLink>
+
+                </template>
             </template>
         </div>
     </section>

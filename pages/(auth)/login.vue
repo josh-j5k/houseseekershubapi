@@ -160,7 +160,7 @@ useSeoMeta({
                         class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         Forgot your password?
                     </NuxtLink>
-                    <PrimaryButton :loading="btnLoading" class="ml-4">
+                    <PrimaryButton type="submit" :loading="btnLoading" class="ml-4">
                         Log in
                     </PrimaryButton>
                 </div>

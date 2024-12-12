@@ -4,50 +4,98 @@ import type { user } from '~/types/user';
 defineProps<{
     class: string
 }>()
-const user = useState('user').value as user
+const user = useState('user') as Ref<user>
+const { handleRequest, btnLoading } = useBackend()
 const show = ref(false)
+const confirmingUserEmailChange = ref(false)
 const closeable = ref(false)
-const form = reactive({
-    name: user.user.name,
-    email: user.user.email,
+const uploadPicture = ref(<string | null>null)
+const avatar = ref(<FormDataEntryValue | null>null)
+const form = reactive(<{ name: string, email: string, password?: string }>{
+    name: user.value.user.name,
+    email: user.value.user.email,
 });
 
-const avatarForm = reactive({
-    avatar: <File[]>[]
-})
 function changeAvatar() {
 
     document.getElementById('avatar')?.click()
 }
 function closeModal() {
     show.value = false
+    uploadPicture.value = null
+    avatar.value = null
+}
+function closeEmailChangeModal() {
+    confirmingUserEmailChange.value = false
+    form.email = user.value.user.email
 }
 function updateAvatar() {
     show.value = true
 }
-function formSubmit() {
+function getAvatar() {
     const fileInput = document.getElementById('avatar') as HTMLInputElement
-    const btn = document.getElementById('profile-update') as HTMLButtonElement
-    if (fileInput?.files !== null) {
-        const file = fileInput.files[0] as File
-        avatarForm.avatar.push(file)
+    const avatarForm = document.getElementById('avatar-form') as HTMLFormElement
+    const formData = new FormData(avatarForm)
+    const file = formData.get('avatar')
+    if (file !== null) {
+        avatar.value = file
+
+        let src = ''
+        const reader = new FileReader();
+        if (fileInput.files) {
+            reader.readAsDataURL(fileInput.files[0]);
+
+            reader.onload = (e: any) => {
+                src = e.target.result;
+                uploadPicture.value = src
+
+            };
+        }
+
     }
 
-    btn.click()
 }
-function submit() {
-    // if (avatarForm.avatar.length > 0) {
-    //     avatarForm.post(route('user.profile.update.avatar', user.id), {
-    //         onSuccess: () => location.reload()
-    //     })
+function passwordAdded() {
+    confirmingUserEmailChange.value = false
+    submit()
+}
+async function submit() {
+    if (avatar.value) {
+        const { data, error } = await handleRequest('post', '/profile/update/'.concat(user.value.user.ref).concat('/avatar'), { avatar: avatar.value }, 'multpartForm')
+        if (!error) {
+            user.value.user.picture = data.data
+            localStorage.removeItem('user')
+            localStorage.setItem('user', JSON.stringify(user.value))
+            toastNotification('Success', data.message)
+        } else {
+            toastNotification('Error', data.message)
+        }
 
-    // } else {
-    //     form.patch(route('user.profile.update', user.id))
-    // }
+    } else {
+        if (form.email === user.value.user.email && form.name === user.value.user.name) return
+        if (form.email !== user.value.user.email && form.password == undefined) {
+            confirmingUserEmailChange.value = true
+            return
+        }
+
+        const { data, error } = await handleRequest('post', '/profile/update/'.concat(user.value.user.ref).concat('/user'), form)
+        if (!error) {
+            user.value.user.name = data.data
+            localStorage.removeItem('user')
+            localStorage.setItem('user', JSON.stringify(user.value))
+            toastNotification('Success', data.message)
+        } else {
+            toastNotification('Error', data.message)
+
+        }
+        if (form.password) {
+            delete form.password
+        }
+    }
 }
 onMounted(() => {
     const input = <HTMLInputElement>document.getElementById('avatar')
-    input.addEventListener('change', formSubmit)
+    input.addEventListener('change', getAvatar)
 })
 </script>
 
@@ -67,9 +115,6 @@ onMounted(() => {
                     Name
                     <input v-model="form.name" required autofocus class="input" type="text" name="name" id="name">
                 </label>
-
-
-                <!-- <InputError class="mt-2" :message="form.errors.name" /> -->
             </div>
 
             <div>
@@ -78,18 +123,17 @@ onMounted(() => {
                     <input v-model="form.email" required autocomplete="username" class="input" type="email" name="email"
                         id="email">
                 </label>
-
-
-                <!-- <InputError class="mt-2" :message="form.errors.email" /> -->
             </div>
             <div>
                 <label for="avatar">Update Avatar</label>
 
                 <div class="mt-3">
-                    <input hidden type="file" name="avatar" id="avatar" accept=".jpg, .jpeg, .png, .webp">
-                    <button aria-labelledby="button" @click="updateAvatar"
-                        class="w-20 h-20 rounded-full bg-gray-200 cursor-pointer">
-                        <img v-if="user.user.avatar" :src="user.user.avatar" alt="avatar"
+                    <form id="avatar-form">
+                        <input hidden type="file" name="avatar" id="avatar" accept=".jpg, .jpeg, .png, .webp">
+                    </form>
+
+                    <button @click="updateAvatar" class="w-20 h-20 rounded-full bg-gray-200 cursor-pointer">
+                        <img v-if="user.user.picture" :src="user.user.picture" alt="avatar"
                             class="w-20 h-20 rounded-full">
                         <span v-else class="w-20 h-20 flex justify-center items-center">
                             <i class="fas fa-user text-2xl"></i>
@@ -98,28 +142,10 @@ onMounted(() => {
                 </div>
             </div>
 
-            <!-- <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="text-sm mt-2 text-gray-800">
-                    Your email address is unverified.
-                    <Link :href="route('verification.send')" method="post" as="button"
-                        class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Click here to re-send the verification email.
-                    </Link>
-                </p>
-
-                <div v-show="status === 'verification-link-sent'" class="mt-2 font-medium text-sm text-green-600">
-                    A new verification link has been sent to your email address.
-                </div>
-            </div> -->
-
             <div class="flex items-center gap-4">
-                <PrimaryButton id="profile-update">Save</PrimaryButton>
-
-                <!-- <Transition enter-active-class="transition ease-in-out" enter-from-class="opacity-0"
-                    leave-active-class="transition ease-in-out" leave-to-class="opacity-0">
-                    <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
-                </Transition> -->
-
+                <PrimaryButton type="submit" :loading="btnLoading" id="profile-update"><span v-if="!btnLoading">
+                        Save
+                    </span> <span v-else>Saving</span></PrimaryButton>
             </div>
         </form>
         <Modal @close="closeModal" :show="show" max-width="lg" :closeable="closeable">
@@ -132,31 +158,68 @@ onMounted(() => {
                     </button>
                 </div>
                 <div class="flex justify-center mb-8">
-                    <img v-if="user.user.avatar" :src="user.user.avatar" alt="avatar" class="w-40 h-40 rounded-full">
+                    <img v-if="uploadPicture || user.user.picture" :src="uploadPicture || user.user.picture"
+                        alt="avatar" class="w-40 h-40 rounded-full">
                     <span v-else class="w-40 h-40 rounded-full bg-slate-100 flex justify-center items-center">
                         <i class="fas fa-user text-6xl"></i>
                     </span>
 
                 </div>
                 <hr class="w-full h-[1px] bg-slate-300">
-                <div class="px-8 flex justify-between pt-4">
-                    <button @click="changeAvatar" type="button" title="change avatar"
-                        class="capitalize flex items-center flex-col">
-                        <span>
-                            <i class="fas fa-pencil"></i>
-                        </span>
-                        <span>
-                            change avatar
-                        </span>
+                <div class="px-8 flex gap-3 items-center justify-between pt-4">
+                    <div class="flex gap-4">
+                        <PrimaryButton class="text-sm" :loading="btnLoading" v-if="avatar" @click="submit">
+                            Submit
+                        </PrimaryButton>
+                        <button @click="changeAvatar" type="button" title="change avatar"
+                            class="uppercase flex gap-2 px-4 py-[7px] text-sm items-center bg-secondary rounded text-white">
+                            <span>
+                                <i class="fas fa-pencil"></i>
+                            </span>
+                            <span>
+                                change avatar
+                            </span>
+                        </button>
+
+                    </div>
+                    <div>
+                        <button type="button" title="remove avatar"
+                            class="uppercase flex gap-2 px-4 py-[7px] text-sm items-center bg-red-600 rounded text-white">
+                            <span>
+                                <i class="fas fa-trash-can"></i>
+                            </span>
+                            <span>
+                                delete
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+        <Modal :show="confirmingUserEmailChange" @close="closeEmailChangeModal">
+            <div class="p-6">
+                <p class="mt-1 text-sm text-gray-600">
+                    Please
+                    enter your password to confirm you would like to change the email linked to your account.
+                </p>
+
+                <div class="mt-6">
+                    <label for="password">
+                        Password
+                        <input class="input" v-model="form.password" type="password" name="password" id="password"
+                            placeholder="Password" @keyup.enter="submit">
+                    </label>
+
+
+                    <!-- <InputError :message="form.errors.password" class="mt-2" /> -->
+                </div>
+
+                <div class="mt-6 flex gap-4 justify-end">
+                    <button class="bg-gray-500 py-1 px-3 rounded text-white" @click="closeEmailChangeModal"> Cancel
                     </button>
-                    <button type="button" title="remove avatars" class="capitalize items-center flex flex-col">
-                        <span>
-                            <i class="fas fa-trash-can"></i>
-                        </span>
-                        <span>
-                            delete
-                        </span>
-                    </button>
+                    <PrimaryButton @click="passwordAdded">
+                        Submit
+                    </PrimaryButton>
                 </div>
             </div>
         </Modal>

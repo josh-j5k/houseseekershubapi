@@ -3,7 +3,7 @@ export type user = {
         ref: string,
         email: string,
         name: string,
-        avatar: string | null
+        picture: string | null
     },
     access_token: string
 }

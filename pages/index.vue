@@ -175,7 +175,7 @@ useSeoMeta({
             <h2 class="md:text-3xl text-2xl font-bold text-center">
                 Your property search just got easier
             </h2>
-            <button type="button" class="border border-white capitalize p-2"> find a house</button>
+            <NuxtLink to="/listings" class="border border-white capitalize p-2"> find a house</NuxtLink>
         </div>
     </section>
     <section class="p-8 pt-12 ">
@@ -261,7 +261,7 @@ useSeoMeta({
                     on
                     Rightmove or Zoopla. Find out more about Only With Us properties here.
                 </p>
-                <NuxtLink href="#" class="text-accent ">
+                <NuxtLink to="/listings" class="text-accent ">
                     <span class="capitalize">
                         start your search
                     </span>

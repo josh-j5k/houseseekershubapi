@@ -118,7 +118,7 @@ useSeoMeta({
                         Already registered?
                     </NuxtLink>
 
-                    <PrimaryButton :loading="btnLoading" class="ml-4">
+                    <PrimaryButton type="submit" :loading="btnLoading" class="ml-4">
                         Register
                     </PrimaryButton>
                 </div>

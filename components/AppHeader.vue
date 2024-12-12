@@ -119,8 +119,8 @@ onUnmounted(() => {
                             <div v-else class="relative">
                                 <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle"
                                     type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
-                                    <span v-if="user.user.avatar" id="avatar">
-                                        <img :src="user.user.avatar" alt="user avatar"
+                                    <span v-if="user.user.picture" id="avatar">
+                                        <img :src="user.user.picture" alt="user avatar"
                                             class="w-8 aspect-square rounded-full">
                                     </span>
                                     <span id="avatar" v-else

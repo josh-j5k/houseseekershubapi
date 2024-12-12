@@ -23,7 +23,7 @@ const bookmarkLoading = ref(false)
 const currentIndex = ref(0)
 const chats = ref(<null | any>null)
 const authUser = ref(<user | undefined>undefined)
-
+const closeMessage = ref(false)
 
 const response = await useFetch('/api/listings/'.concat(useRoute().params.listing.toString()))
 
@@ -67,7 +67,7 @@ async function sendMessage() {
     }
     imgSrc.value.length = 0
 
-    const payload = <{ message: string, receivers_ref: string, message_pictures: any | undefined }>{ message: value, receivers_ref: authorized.value! }
+    const payload = <{ message: string, receivers_ref: string, message_pictures: any | undefined }>{ message: value, receivers_ref: isAuthorized.value.ref }
     if (file != null) {
         payload.message_pictures = file
     }
@@ -77,13 +77,16 @@ async function sendMessage() {
 }
 
 function closeMessageBox() {
+    closeMessage.value = true
     document.documentElement.style.overflow = 'auto'
-    showMessage.value = false
+    setTimeout(() => {
+        showMessage.value = false
+    }, 600);
 }
 // Fetch chat messages
 async function getChats() {
     showMessage.value = true
-
+    if (closeMessage.value) closeMessage.value = false
     if (chats.value == null) {
         const { data, error } = await handleRequest('get', '/messages/'.concat(isAuthorized.value.ref!))
         if (!error) {
@@ -134,6 +137,11 @@ function nextPic() {
         currentIndex.value = 0
     }
 }
+onUnmounted(() => {
+    if (document.documentElement.style.overflow === 'clip') {
+        document.documentElement.style.overflow = 'auto'
+    }
+})
 const regex = /[.@!$%#^*;]/g
 const title = data.value.data.title.replaceAll(regex, '')
 useSeoMeta({
@@ -199,7 +207,7 @@ useSeoMeta({
                         </template>
                     </div>
                 </div>
-                <div class="bg-white py-12 px-8 shadow md:h-screen overflow-y-auto relative">
+                <div class="bg-white py-12 px-8 shadow md:h-screen relative overflow-clip">
                     <div>
                         <h1 class="capitalize font-bold text-3xl mb-3">
                             {{ data.data.title }}
@@ -288,12 +296,14 @@ useSeoMeta({
                     <h2 class="font-bold text-lg mb-4">
                         Description
                     </h2>
-                    <p>{{ data.data.description }}</p>
+                    <div class="overflow-y-auto">
+                        <p>{{ data.data.description }}</p>
+                    </div>
 
                     <!-- message box -->
                     <div v-if="showMessage"
-                        class="w-full shadow-xl min-h-[75%] -md:h-screen bg-blue-100 z-30 absolute -md:fixed bottom-0 left-0 transition-transform duration-300 ease-in"
-                        :class="[showMessage ? 'translate-y-0' : 'translate-y-full']">
+                        class="w-full shadow-xl min-h-[75%] -md:h-screen bg-blue-100 z-30 absolute -md:fixed bottom-0 left-0"
+                        :class="[closeMessage ? ' animate-slide_out_to_bottom' : ' animate-slide_in_from_bottom']">
                         <template v-if="chatLoading">
                             <div class="flex justify-center -md:h-screen bg-blue-100 pt-20">
                                 <Spinner class="text-4xl" />
@@ -305,14 +315,14 @@ useSeoMeta({
                                     <i class="fa-solid fa-arrow-left text-lg font-bold"> </i>
                                 </button>
                                 <div class="flex gap-2 items-center">
-                                    <span v-if="chats.recipient.avatar == null"
+                                    <span v-if="chats.recipient.picture == null"
                                         class="capitalize text-2xl flex justify-center items-center bg-orange-500 text-white h-8 w-8 border rounded-full">
                                         {{ chats.recipient.name.charAt(0) }}
                                     </span>
                                     <span v-else
                                         class="flex justify-center items-center text-white h-10 w-10 aspect-square border rounded-full">
                                         <img class="h-full w-full rounded-full aspect-square"
-                                            :src="chats.recipient.avatar" alt="picture">
+                                            :src="chats.recipient.picture" alt="picture">
                                     </span>
                                     <div class="flex flex-col">
                                         <span class="capitalize text-white">

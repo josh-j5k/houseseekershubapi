@@ -184,13 +184,13 @@ getInboxMessages()
                         <i class="fa-solid fa-arrow-left text-lg font-bold"> </i>
                     </button>
                     <div class="flex gap-2">
-                        <span v-if="chats.recipient.avatar == null"
+                        <span v-if="chats.recipient.picture == null"
                             class="capitalize text-2xl flex justify-center items-center bg-orange-500 text-white h-10 w-10 border rounded-full">
                             {{ chats.recipient.name.charAt(0) }}
                         </span>
                         <span v-else
                             class="capitalize text-2xl flex justify-center items-center text-white h-14 w-14 aspect-square border rounded-full">
-                            <img class="h-full w-full rounded-full aspect-square" :src="chats.recipient.avatar"
+                            <img class="h-full w-full rounded-full aspect-square" :src="chats.recipient.picture"
                                 alt="picture">
                         </span>
                         <div class="flex flex-col">

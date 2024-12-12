@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps < {
+defineProps<{
     class: string
-} > ()
+}>()
 </script>
 
 
@@ -19,7 +19,7 @@ defineProps < {
             #dbdbdb 20%,
             #cfcfcf 100%);
     background-size: 200% 100%;
-    /* box-shadow: var(--s_box-shadow); */
+
     animation: background_animate 1.2s linear infinite;
 }
 

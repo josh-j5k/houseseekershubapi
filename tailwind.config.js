@@ -14,6 +14,50 @@ module.exports = {
 			fontFamily: {
 				sans: ["Roboto", ...defaultTheme.fontFamily.sans],
 			},
+			animation: {
+				slide_in_from_left: "slide_in_from_left ease 500ms forwards",
+				slide_in_from_right: "slide_in_from_right ease 500ms forwards",
+				slide_in_from_top: "slide_in_from_top ease 500ms forwards",
+				slide_in_from_bottom: "slide_in_from_bottom ease 500ms forwards",
+				slide_out_to_left: "slide_out_to_left ease 500ms forwards",
+				slide_out_to_right: "slide_out_to_right ease 500ms forwards",
+				slide_out_to_top: "slide_out_to_top ease 500ms forwards",
+				slide_out_to_bottom: "slide_out_to_bottom ease 500ms forwards",
+			},
+			keyframes: {
+				slide_in_from_left: {
+					"0%": { transform: "translateX(-100%)" },
+					"100%": { transform: "translateX(0)" },
+				},
+				slide_in_from_top: {
+					"0%": { transform: "translateY(-100%)" },
+					"100%": { transform: "translateY(0)" },
+				},
+				slide_in_from_right: {
+					"0%": { transform: "translateX(100%)" },
+					"100%": { transform: "translateX(0)" },
+				},
+				slide_in_from_bottom: {
+					"0%": { transform: "translateY(100%)" },
+					"100%": { transform: "translateY(0)" },
+				},
+				slide_out_to_bottom: {
+					"0%": { transform: "translateY(0)" },
+					"100%": { transform: "translateY(100%)" },
+				},
+				slide_out_to_top: {
+					"0%": { transform: "translateY(0)" },
+					"100%": { transform: "translateY(-100%)" },
+				},
+				slide_out_to_left: {
+					"0%": { transform: "translateX(0)" },
+					"100%": { transform: "translateX(-100%)" },
+				},
+				slide_out_to_right: {
+					"0%": { transform: "translateX(0)" },
+					"100%": { transform: "translateX(100%)" },
+				},
+			},
 			screens: {
 				"-2xl": { max: "1535px" },
 				// => @media (max-width: 1536px) { ... }
@@ -21,7 +65,7 @@ module.exports = {
 				// => @media (max-width: 1279px) { ... }
 				"-lg": { max: "1023px" },
 				// => @media (max-width: 1023px) { ... }
-				"-md": { max: "769px" },
+				"-md": { max: "768px" },
 				// => @media (max-width: 769px) { ... }
 				"-sm": { max: "639px" },
 				// => @media (max-width: 639px) { ... }

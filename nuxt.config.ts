@@ -15,7 +15,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: "https://api.houseseekershub.com",
+      apiUrl: "http://localhost:8000",
       frontendUrl: "https://houseseekershub.com",
 
     }

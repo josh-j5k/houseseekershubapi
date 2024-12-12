@@ -45,7 +45,7 @@ const closeModal = () => {
             </p>
         </header>
 
-        <button @click="confirmUserDeletion">Delete Account</button>
+        <button class="bg-red-600 py-1 px-3 rounded text-white" @click="confirmUserDeletion">Delete Account</button>
 
         <Modal :show="confirmingUserDeletion" @close="closeModal">
             <div class="p-6">
@@ -69,10 +69,10 @@ const closeModal = () => {
                     <!-- <InputError :message="form.errors.password" class="mt-2" /> -->
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <button @click="closeModal"> Cancel </button>
+                <div class="mt-6 flex gap-4 justify-end">
+                    <button class="bg-gray-500 py-1 px-3 rounded text-white" @click="closeModal"> Cancel </button>
 
-                    <button class="ml-3" @click="deleteUser">
+                    <button class="ml-3 bg-red-600 py-1 px-3 rounded text-white" @click="deleteUser">
                         Delete Account
                     </button>
                 </div>

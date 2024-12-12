@@ -64,10 +64,7 @@ function intersectionCallback(e: IntersectionObserverEntry[]) {
 if (storeUserListings.value) {
     listings.value = storeUserListings.value
     loading.value = false
-    const target = document.getElementById("loadmore")!;
 
-    const observer = new IntersectionObserver(intersectionCallback, options);
-    observer.observe(target)
 } else {
     (async function () {
         const { data, error } = await handleRequest('get', '/listings/user/listings')
@@ -222,7 +219,13 @@ async function moreListing() {
     }
     loadmore.value = false
 }
-
+onMounted(() => {
+    if (listings.value.listings) {
+        const target = document.getElementById("loadmore")!;
+        const observer = new IntersectionObserver(intersectionCallback, options);
+        observer.observe(target)
+    }
+})
 </script>
 
 <template>

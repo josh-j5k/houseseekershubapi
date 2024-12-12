@@ -124,9 +124,9 @@ onUnmounted(() => {
 
                                     <button @click="dropdownToggled = !dropdownToggled" id="dashboard_dropdown-toggle"
                                         type="button" class="flex gap-2.5 items-center dashboard_dropdown-toggle">
-                                        <span v-if="authUser.user.avatar">
+                                        <span v-if="authUser.user.picture">
 
-                                            <img :src="authUser.user.avatar" alt="user avatar"
+                                            <img :src="authUser.user.picture" alt="user avatar"
                                                 class="w-8 aspect-square rounded-full">
                                         </span>
                                         <span v-else
