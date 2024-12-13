@@ -24,18 +24,23 @@ class MessageController extends Controller
         $messages = [];
         $recipientIdArr = [];
 
-        Message::orderByDesc('created_at')->where(function ($q) {
-            $q->where('senders_id', Auth::user()->id)
-                ->orWhere('receivers_id', Auth::user()->id);
-        })->each(function (object $message) use (&$recipientIdArr, &$messages): void {
-            $recipient_id = $message->senders_id == Auth::user()->id ? $message->receivers_id : $message->senders_id;
+        Message::orderByDesc('created_at')->where(function ($q) use ($user) {
+            $q->where('senders_id', $user->id)
+                ->orWhere('receivers_id', $user->id);
+        })->each(function (object $message) use (&$recipientIdArr, &$messages, $user): void {
+            $recipient_id = $message->senders_id == $user->id ? $message->receivers_id : $message->senders_id;
+            $recipient = User::find($recipient_id);
+            $unread = 0;
+            if ($message->senders_id !== $user->id) {
+                $unread = Message::where([['senders_id', $recipient_id], ['receivers_id', $user->id], ['seen', false]])->count();
+            }
             if (in_array($recipient_id, $recipientIdArr) === false) {
-                $recipient = User::find($recipient_id);
                 $created_at = new Carbon($message->created_at);
+
                 $messages[] = [
                     'id' => $message->id,
 
-                    'latest_message_sender' => User::where('id', $message->senders_id)->value('ref'),
+                    'latest_message_sender' => $message->senders_id === $user->id ? $user->ref : $recipient->ref,
                     'recipient' => [
                         'picture' => $recipient->picture,
                         'name' => $recipient->name,
@@ -43,7 +48,7 @@ class MessageController extends Controller
                     ],
                     'message' => $message->message,
 
-                    'unread' => 0,
+                    'unread' => $unread,
                     'time' => now()->toFormattedDateString() === $created_at->toFormattedDateString() ? substr(date("H:i:s", $created_at->getTimestamp()), 0, 5) : (now()->subDay()->toFormattedDateString() === $created_at->toFormattedDateString() ? 'Yesterday' : (now()->diffInDays($created_at->addDays(6)) > 0 ? $created_at->addDay()->dayName : $created_at->toDateString()))
 
                 ];
@@ -65,10 +70,18 @@ class MessageController extends Controller
          * @var User
          */
         $recipient = User::where('ref', $ref)->first();
+
         $messages['recipient'] = ['name' => $recipient->name, 'ref' => $recipient->ref, 'picture' => $recipient->picture];
-
-        Message::orderBy('created_at', 'asc')->where([['senders_id', $user->id], ['receivers_id', $recipient->id]])->orWhere([['receivers_id', $user->id], ['senders_id', $recipient->id]])->each(function ($message) use (&$messages, $user, $recipient) {
-
+        $count = 0;
+        $markAsRead = false;
+        Message::orderBy('created_at', 'asc')->where([['senders_id', $user->id], ['receivers_id', $recipient->id]])->orWhere([['receivers_id', $user->id], ['senders_id', $recipient->id]])->eachById(function ($message) use (&$messages, $user, &$markAsRead, $count, $recipient) {
+            if ($count === 0) {
+                $message->senders_id == $recipient->id && $message->seen == false ? $markAsRead = true : $markAsRead = false;
+            }
+            if ($markAsRead && $message->seen == false) {
+                $message->seen = true;
+                $message->save();
+            }
             $created_at = new Carbon($message->created_at);
 
             $date = now()->toFormattedDateString() === $created_at->toFormattedDateString() ? "Today" : (now()->subDay()->toFormattedDateString() === $created_at->toFormattedDateString() ? 'Yesterday' : (now()->diffInDays($created_at->addDays(6)) > 0 ? $created_at->addDay()->dayName : $created_at->toFormattedDateString()));
@@ -86,7 +99,7 @@ class MessageController extends Controller
                     ] : null
                 ]
             ];
-        });
+        }, 1000);
         return $this->response('success', 'all chats', $messages);
 
     }
