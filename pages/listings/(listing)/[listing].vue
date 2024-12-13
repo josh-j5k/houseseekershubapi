@@ -348,17 +348,17 @@ useSeoMeta({
                                         <ul>
                                             <template v-for="chat in chats.messages[key]">
                                                 <li class="rounded flex mb-1 w-full"
-                                                    :class="chat.content.from === authUser?.user.ref ? ' justify-end' : 'justify-start'">
+                                                    :class="chat.content.from !== chats.recipient.ref ? ' justify-end' : 'justify-start'">
                                                     <span v-if="chat.content.time"
                                                         class="w-fit p-2 rounded-[10px] relative flex flex-col"
-                                                        :class="chat.content.from === authUser?.user.ref ? ' bg-blue-600 text-white rounded-br-none' : 'bg-white rounded-bl-none'">
+                                                        :class="chat.content.from !== chats.recipient.ref ? ' bg-blue-600 text-white rounded-br-none' : 'bg-white rounded-bl-none'">
                                                         <img class="w-52" v-if="chat.content.message_pictures"
                                                             :src="chat.content.message_pictures.url" alt="">
                                                         {{ chat.content.message }}
                                                         <span class="text-[12px] text-right"
-                                                            :class="chat.content.from === authUser?.user.ref ? ' text-blue-100' : 'text-gray-500'">
+                                                            :class="chat.content.from !== chats.recipient.ref ? ' text-blue-100' : 'text-gray-500'">
                                                             {{ chat.content.time }}
-                                                            <span v-if="chat.content.from === authUser?.user.ref">
+                                                            <span v-if="chat.content.from !== chats.recipient.ref">
                                                                 <i class="fa-solid fa-check"></i>
                                                             </span>
                                                         </span>

@@ -9,7 +9,7 @@ export default function () {
         response_type: 'code',
         client_id: config.public.googleClientId,
         scope: "openid email profile",
-        redirect_uri: config.public.googleOauth2CallbackUrl,
+        redirect_uri: config.public.frontendUrl.concat('/login'),
         state: security_token,
         access_type: 'offline'
     }

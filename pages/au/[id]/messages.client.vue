@@ -10,12 +10,23 @@ const { assignFiles, imgSrc, filesArr, resetInput } = useFileUpload()
 const { handleRequest } = useBackend()
 const chats = ref(<any>{})
 const activeChat = ref(<{
-    "id": number,
+    id: number,
     ref: string
 } | null>null)
-const inbox = ref(<any>[
+const inbox = ref(<{
+    id: number,
+    latest_message_sender: string,
+    recipient: {
+        picture: string,
+        name: string,
+        ref: string
+    },
+    message: string,
+    unread: number,
+    time: string
+}[]>[
 
-])
+    ])
 const mobileActiveChat = ref(false)
 const messageInput = ref('')
 const users = ref(<any>[])
@@ -24,7 +35,10 @@ const colors = ['bg-orange-500', 'bg-orange-800', 'bg-blue-700', 'bg-green-500',
 
 const inboxLoading = ref(true)
 const chatsLoading = ref(false)
-
+function selectRandomColor() {
+    const index = Math.floor(Math.random() * colors.length)
+    return colors[index]
+}
 // Send a message
 async function sendMessage() {
     const form = <HTMLFormElement>document.getElementById('form')
@@ -61,12 +75,14 @@ async function sendMessage() {
 
 
 // Fetch chat messages
-async function getChats(inbox: { id: number, ref: string }) {
+async function getChats(index: number) {
     mobileActiveChat.value = true
-    if (Object.keys(chats.value).length === 0 || chats.value.recipient.ref !== inbox.ref) {
+
+    if (Object.keys(chats.value).length === 0 || chats.value.recipient.ref !== inbox.value[index].recipient.ref) {
         chatsLoading.value = true
-        activeChat.value = inbox
-        const { data, error } = await handleRequest('get', '/messages/'.concat(inbox.ref))
+        activeChat.value = { id: inbox.value[index].id, ref: inbox.value[index].recipient.ref }
+
+        const { data, error } = await handleRequest('get', '/messages/'.concat(inbox.value[index].recipient.ref))
         if (!error) {
             chats.value = data.data
             setTimeout(() => {
@@ -77,7 +93,9 @@ async function getChats(inbox: { id: number, ref: string }) {
             }, 1);
 
         }
-
+        if (inbox.value[index].unread > 0) {
+            inbox.value[index].unread = 0
+        }
         chatsLoading.value = false
 
     }
@@ -122,18 +140,17 @@ getInboxMessages()
                     </div>
                 </template>
                 <template v-else v-for="(inbox, index) in inbox">
-                    <div class="py-3 px-2" role="listitem"
+                    <div class="py-3 px-3" role="listitem"
                         :class="activeChat?.id === inbox.id ? 'bg-gradient-to-l from-blue-800/10 to-blue-300/30 ' : ''">
-                        <div class="w-full flex gap-3 cursor-pointer" role="button"
-                            @click="getChats({ id: inbox.id, ref: inbox.recipient.ref })">
-                            <span v-if="inbox.recipient.avatar === null"
+                        <div class="w-full flex gap-3 cursor-pointer" role="button" @click="getChats(index)">
+                            <span v-if="inbox.recipient.picture === null"
                                 class="capitalize text-2xl flex justify-center items-center text-white h-14 w-14 aspect-square border rounded-full"
-                                :class="index ? colors[index] : 'bg-orange-600'">
+                                :class="selectRandomColor()">
                                 {{ inbox.recipient.name.charAt(0) }}
                             </span>
                             <span v-else
                                 class="capitalize text-2xl flex justify-center items-center text-white h-14 w-14 aspect-square border rounded-full">
-                                <img class="h-full w-full rounded-full aspect-square" :src="inbox.recipient.avatar"
+                                <img class="h-full w-full rounded-full aspect-square" :src="inbox.recipient.picture"
                                     alt="picture">
                             </span>
                             <div class=" flex flex-col gap-1 w-full">
@@ -157,7 +174,7 @@ getInboxMessages()
                                             <i class="fa-regular fa-image"></i>
                                         </span>
                                     </div>
-                                    <span v-if="inbox.latest_message_sender !== authUser?.user.ref && inbox.unred > 0"
+                                    <span v-if="inbox.unread > 0"
                                         class="rounded-full bg-blue-500 text-white text-[12px] flex justify-center items-center w-5 h-5  aspect-square">
                                         {{ inbox.unread }}
                                     </span>
@@ -170,7 +187,7 @@ getInboxMessages()
             </div>
 
         </div>
-        <div class="bg-gray-100 lg:h-[calc(100vh-65px)] -md:transition-transform -md:duration-300 -md:ease-in -md:w-full md -md:absolute -lg:z-20 lg:overflow-y-hidden"
+        <div class="bg-gray-100 lg:h-[calc(100vh-65px)] -md:transition-transform -md:duration-300 -md:ease-in -md:w-full md:relative -md:absolute -lg:z-20 lg:overflow-y-hidden"
             :class="[mobileActiveChat ? '-md:translate-x-0' : '-md:translate-x-full']">
             <template v-if="chatsLoading">
                 <div class="flex justify-center -md:h-screen bg-white pt-20">

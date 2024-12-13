@@ -25,7 +25,7 @@ async function authenticateUser() {
     const bodyParams = {
         client_id: config.public.googleClientId,
         client_secret: config.public.googleClientSecret,
-        redirect_uri: config.public.googleOauth2CallbackUrl,
+        redirect_uri: config.public.frontendUrl.concat('/login'),
         code: query.code,
         grant_type: "authorization_code"
     }
