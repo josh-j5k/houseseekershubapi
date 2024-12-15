@@ -140,10 +140,10 @@ onMounted(() => {
         }
         loadmore.value = false
     }
+    const load = computed(() => hasMorePages.value || storedListings?.hasMorePages)
     const observer = new IntersectionObserver(function (e) {
         const intersection = e[0]
-
-        if (intersection.isIntersecting && (hasMorePages.value || storedListings?.hasMorePages)) {
+        if (intersection.isIntersecting && load.value) {
             page.value++
             moreListing()
         }
