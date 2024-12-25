@@ -247,13 +247,15 @@ useSeoMeta({
                                 <button
                                     :disabled="isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref || bookmarkLoading"
                                     @mousedown="onMouseDown" @mouseup="onMouseUp" @click="setBookmark" type="button"
-                                    title="bookmark" class="flex gap-3 bg-secondary  py-1 px-3 rounded-lg"
+                                    title="bookmark" class="bg-secondary py-1 px-3 rounded-lg"
                                     :class="[isAuthorized.ref == null || isAuthorized.ref === authUser?.user.ref || bookmarkLoading ? 'opacity-60 cursor-not-allowed' : '']">
-                                    <span v-if="isAuthorized.bookmark">
-                                        <i class="fa-solid fa-bookmark text-blue-300"></i>
+                                    <span class="flex gap-3 items-center text-blue-300" v-if="isAuthorized.bookmark">
+                                        <i class="fa-solid fa-bookmark "></i>
+                                        Bookmark
                                     </span>
-                                    <span v-else>
-                                        <i class="fa-regular fa-bookmark text-white"></i>
+                                    <span class="flex items-center gap-3 text-white" v-else>
+                                        <i class="fa-regular fa-bookmark "></i>
+                                        Bookmark
                                     </span>
 
                                 </button>
@@ -283,6 +285,7 @@ useSeoMeta({
                                 <span>
                                     <i class="fa-solid fa-share"></i>
                                 </span>
+                                Share
                             </button>
 
                         </div>

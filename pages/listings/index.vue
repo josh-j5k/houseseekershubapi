@@ -4,7 +4,7 @@ import type { LocationQuery, LocationQueryValue } from 'vue-router';
 import type { Listing } from '@/types/listings'
 
 const { decodeQuery, propertyType, location, status, price, priceValidate, locationValidate, removeQueryParams, resetFields } = useListing()
-const { handleRequest } = useBackend()
+const { handleRequest, btnLoading } = useBackend()
 const { storedListings } = useStoredListings()
 
 const listings = ref(<Listing[]>Array(0))
@@ -122,25 +122,30 @@ function submitProperty() {
 function submitStatus() {
     submit('status', status.value)
 }
-
+async function moreListing() {
+    loadmore.value = true
+    const decodedQuery = decodeQuery()
+    decodedQuery['page'] = page.value.toString()
+    const { data, error } = await handleRequest('get', '/listings', decodedQuery)
+    if (!error) {
+        listings.value = [...listings.value, ...data.data.listings]
+        hasMorePages.value = data.data.hasMorePages
+    }
+    loadmore.value = false
+}
+function btnLoadmore() {
+    page.value++
+    moreListing()
+}
+const load = computed(() => hasMorePages.value || storedListings?.hasMorePages)
 onMounted(() => {
     const target = document.getElementById("loadmore")!;
     const options = {
         rootMargin: "0px",
         threshold: 1.0,
     };
-    async function moreListing() {
-        loadmore.value = true
-        const decodedQuery = decodeQuery()
-        decodedQuery['page'] = page.value.toString()
-        const { data, error } = await handleRequest('get', '/listings', decodedQuery)
-        if (!error) {
-            listings.value = [...listings.value, ...data.data.listings]
-            hasMorePages.value = data.data.hasMorePages
-        }
-        loadmore.value = false
-    }
-    const load = computed(() => hasMorePages.value || storedListings?.hasMorePages)
+
+
     const observer = new IntersectionObserver(function (e) {
         const intersection = e[0]
         if (intersection.isIntersecting && load.value) {
@@ -373,7 +378,11 @@ useSeoMeta({
 
             </div>
         </div>
-        <div id="loadmore">
+        <div class="-md:hidden" id="loadmore">
+        </div>
+        <div class="md:hidden flex justify-center pb-8" v-if="load">
+            <PrimaryButton @click="btnLoadmore" :loading="btnLoading"> {{ btnLoading ? 'loading' : 'loadmore' }}
+            </PrimaryButton>
         </div>
     </section>
 
