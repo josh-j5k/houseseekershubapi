@@ -146,15 +146,15 @@ const regex = /[.@!$%#^*;]/g
 const title = data.value.data.title.replaceAll(regex, '')
 useSeoMeta({
     ogImage: {
-        url: data.value.data.images[0],
-        secureUrl: data.value.data.images[0]
+        url: `https://api.houseseekershub.com/og-image.png/${data.value.data.images[0]}`,
+        secureUrl: `https://api.houseseekershub.com/og-image.png/${data.value.data.images[0]}`
     },
     ogDescription: data.value.data.description,
     ogTitle: title,
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com/listings/create',
     twitterCard: "summary_large_image",
-    twitterImage: data.value.data.images[0],
+    twitterImage: `https://api.houseseekershub.com/og-image.png/${data.value.data.images[0]}`,
     twitterTitle: title,
     twitterDescription: data.value.data.description,
     title: title,

@@ -51,10 +51,10 @@ useHead({
 })
 useSeoMeta({
     ogImage: {
-        url: '/og image.png',
+        url: 'https://houseseekershub.com/images/og-image.png',
         type: 'image/png',
         height: 600,
-        secureUrl: '/og image.png'
+        secureUrl: 'https://houseseekershub.com/images/og-image.png'
     },
     ogDescription: description,
 
@@ -62,7 +62,7 @@ useSeoMeta({
     ogType: 'website',
     ogUrl: 'https://houseseekershub.com',
     twitterCard: "summary_large_image",
-    twitterImage: '/og image.png',
+    twitterImage: 'https://houseseekershub.com/images/og-image.png',
     twitterTitle: title,
     twitterDescription: description,
     title: title,
